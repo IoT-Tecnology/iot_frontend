@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReadyPackers IoT — Monitor Industrial</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/main.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+</head>
+<body class="layout">
+
+  <!-- ═══════════════ SIDEBAR ═══════════════ -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-logo">⚙ ReadyPackers</div>
+      <div class="brand-sub">IoT Monitor</div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-tab="telemetry">
+        <span class="nav-icon">📈</span>
+        <span class="nav-label">Telemetría</span>
+      </button>
+      <button class="nav-item" data-tab="audit">
+        <span class="nav-icon">📋</span>
+        <span class="nav-label">Auditoría</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="conn-row">
+        <span id="conn-dot" class="conn-dot offline"></span>
+        <span id="conn-label">Desconectado</span>
+      </div>
+      <div class="sidebar-meta">
+        <span id="sidebar-device-id">—</span>
+        <span id="sidebar-last-update">—</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══════════════ MAIN ═══════════════ -->
+  <main class="main">
+
+    <!-- ─── TOP BAR ─── -->
+    <header class="topbar">
+      <div class="topbar-title">
+        <h1 id="page-title">Telemetría</h1>
+        <p id="page-subtitle">Datos continuos de proceso</p>
+      </div>
+      <div class="topbar-controls">
+        <select id="device-selector"></select>
+      </div>
+    </header>
+
+    <div class="content">
+    <section id="tab-telemetry" class="tab-content active">
+
+      <!-- KPI Cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card" id="kpi-ppm">
+          <div class="kpi-icon">📦</div>
+          <div class="kpi-body">
+            <div class="kpi-value">—</div>
+            <div class="kpi-label">Paquetes / min</div>
+          </div>
+          <div class="kpi-trend" id="kpi-ppm-trend"></div>
+        </div>
+        <div class="kpi-card" id="kpi-th">
+          <div class="kpi-icon">🌡</div>
+          <div class="kpi-body">
+            <div class="kpi-value">—</div>
+            <div class="kpi-label">Temp. Mordaza H</div>
+          </div>
+          <div class="kpi-trend" id="kpi-th-trend"></div>
+        </div>
+        <div class="kpi-card" id="kpi-tv">
+          <div class="kpi-icon">🌡</div>
+          <div class="kpi-body">
+            <div class="kpi-value">—</div>
+            <div class="kpi-label">Temp. Mordaza V</div>
+          </div>
+          <div class="kpi-trend" id="kpi-tv-trend"></div>
+        </div>
+        <div class="kpi-card" id="kpi-peso">
+          <div class="kpi-icon">⚖</div>
+          <div class="kpi-body">
+            <div class="kpi-value">—</div>
+            <div class="kpi-label">Peso Promedio</div>
+          </div>
+          <div class="kpi-trend" id="kpi-peso-trend"></div>
+        </div>
+        <div class="kpi-card" id="kpi-presion">
+          <div class="kpi-icon">💨</div>
+          <div class="kpi-body">
+            <div class="kpi-value">—</div>
+            <div class="kpi-label">Presión Aire</div>
+          </div>
+          <div class="kpi-status" id="kpi-presion-status"></div>
+        </div>
+        <div class="kpi-card" id="kpi-running">
+          <div class="kpi-icon">⚡</div>
+          <div class="kpi-body">
+            <div class="kpi-value" id="kpi-running-val">—</div>
+            <div class="kpi-label">Estado Máquina</div>
+          </div>
+          <div class="kpi-status" id="kpi-running-status"></div>
+        </div>
+      </div>
+
+      <!-- Controles gráfico -->
+      <div class="controls-bar">
+        <div class="control-group">
+          <label>Variable</label>
+          <select id="variable-selector" class="select-styled"></select>
+        </div>
+        <div class="control-group">
+          <label>Agregación</label>
+          <select id="time-range-selector" class="select-styled">
+            <option value="1min">1 minuto</option>
+            <option value="5min">5 minutos</option>
+            <option value="10min">10 minutos</option>
+            <option value="1hour" selected>1 hora</option>
+          </select>
+        </div>
+        <button id="load-data-btn" class="btn-primary">Actualizar</button>
+      </div>
+
+      <!-- Gráfico -->
+      <div class="card chart-card">
+        <div class="card-header">
+          <span id="chart-title" class="card-title">Serie temporal</span>
+          <span class="card-badge" id="chart-count">0 puntos</span>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="data-chart"></canvas>
+        </div>
+      </div>
+
+      <!-- Tabla agregados -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Datos agregados</span>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Promedio</th>
+                <th>Mínimo</th>
+                <th>Máximo</th>
+                <th>N registros</th>
+              </tr>
+            </thead>
+            <tbody id="table-body">
+              <tr><td colspan="5" class="empty-row">Selecciona una variable para cargar datos</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ══════════ VISTA: AUDITORÍA ══════════ -->
+    <section id="tab-audit" class="tab-content">
+
+      <!-- Resumen de configuración actual -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Configuración actual de la máquina</span>
+          <button id="refresh-audit-btn" class="btn-ghost">↻ Actualizar</button>
+        </div>
+        <div id="summary-grid" class="summary-grid">
+          <div class="summary-empty">Cargando configuración...</div>
+        </div>
+      </div>
+
+      <!-- Filtros -->
+      <div class="controls-bar">
+        <div class="control-group">
+          <label>Tipo de evento</label>
+          <select id="evt-type-filter" class="select-styled">
+            <option value="">Todos</option>
+            <option value="SETPOINT_CHANGE">Cambio SetPoint</option>
+            <option value="STATE_CHANGE">Cambio Estado</option>
+            <option value="ALARM_TRIGGER">Alarma</option>
+            <option value="ALARM_CLEAR">Alarma resuelta</option>
+            <option value="TARE_ACTION">Tara báscula</option>
+            <option value="RECIPE_LOAD">Cambio receta</option>
+            <option value="CALIBRATION">Calibración</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label>Parámetro</label>
+          <select id="evt-param-filter" class="select-styled">
+            <option value="">Todos</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label>Límite</label>
+          <select id="evt-limit-filter" class="select-styled">
+            <option value="50">50</option>
+            <option value="100">100</option>
+            <option value="200" selected>200</option>
+            <option value="500">500</option>
+          </select>
+        </div>
+        <button id="load-events-btn" class="btn-primary">Filtrar</button>
+      </div>
+
+      <!-- Tabla de eventos -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Historial de eventos</span>
+          <span class="card-badge" id="events-count">0 eventos</span>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table events-table">
+            <thead>
+              <tr>
+                <th>Fecha / Hora</th>
+                <th>Tipo</th>
+                <th>Parámetro</th>
+                <th>Valor anterior</th>
+                <th>Valor nuevo</th>
+                <th>Detalle</th>
+              </tr>
+            </thead>
+            <tbody id="events-body">
+              <tr><td colspan="6" class="empty-row">Cargando eventos...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    </div><!-- /.content -->
+
+    <footer class="main-footer">ReadyPackers — Sistema de Adquisición de Datos IoT 2026</footer>
+  </main>
+
+  <!-- utils -->
+  <script src="js/utils/helpers.js"></script>
+
+  <!-- model -->
+  <script src="js/model/AppState.js"></script>
+  <script src="js/model/ApiService.js"></script>
+
+  <!-- view -->
+  <script src="js/view/TelemetryView.js"></script>
+  <script src="js/view/AuditView.js"></script>
+
+  <!-- controller -->
+  <script src="js/controller/TelemetryController.js"></script>
+  <script src="js/controller/AuditController.js"></script>
+  <script src="js/controller/AppController.js"></script>
+</body>
+</html>
