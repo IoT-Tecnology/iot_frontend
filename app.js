@@ -3,7 +3,7 @@
  * Vista: Telemetría + Auditoría de eventos
  */
 
-const BACKEND_URL    = 'https://iot-backend-z9gc.onrender.com';
+const BACKEND_URL    = 'https://iot-backend-b5v5.onrender.com';
 const DEFAULT_DEVICE = '441095104B78F267112345678';
 let   currentDevice  = DEFAULT_DEVICE;
 let   chart          = null;
