@@ -9,6 +9,7 @@ const AppState = {
   currentDevice: '441095104B78F267112345678',
   allTags:       [],
   chart:         null,   // instancia Chart.js activa
+  deviceMap:     {},     // id → objeto device con health
 
   setDevice(id) {
     this.currentDevice = id || this.defaultDevice;
@@ -25,5 +26,9 @@ const AppState = {
 
   clearChart() {
     if (this.chart) { this.chart.destroy(); this.chart = null; }
+  },
+
+  setDeviceMap(map) {
+    this.deviceMap = map;
   },
 };

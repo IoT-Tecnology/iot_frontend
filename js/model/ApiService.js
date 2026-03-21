@@ -20,6 +20,13 @@ const ApiService = (() => {
     return (d.devices || []).map(x => x.id).filter(Boolean);
   }
 
+  // Devuelve el array de objetos completos (con campo health si está activo)
+  async function getDeviceObjects() {
+    const r = await fetch(url('/api/devices'));
+    const d = await r.json();
+    return d.devices || [];
+  }
+
   async function getSensors(deviceId) {
     const r = await fetch(url('/api/devices/' + deviceId + '/sensors'));
     const d = await r.json();
@@ -53,5 +60,5 @@ const ApiService = (() => {
     return d.events || [];
   }
 
-  return { getHealth, getDevices, getSensors, getLatest, getHistory, getEventSummary, getEvents };
+  return { getHealth, getDevices, getDeviceObjects, getSensors, getLatest, getHistory, getEventSummary, getEvents };
 })();

@@ -6,12 +6,25 @@
 const TelemetryController = (() => {
 
   async function loadDevices() {
-    let ids = [AppState.defaultDevice];
+    let devices = [{ id: AppState.defaultDevice }];
     try {
-      const remote = await ApiService.getDevices();
-      ids = Array.from(new Set([AppState.defaultDevice, ...remote]));
+      const remote = await ApiService.getDeviceObjects();
+      // IDs activos (con health) van primero
+      const activeDevs = remote.filter(d => d.id && d.health?.status === 'healthy');
+      const otherDevs  = remote.filter(d => d.id && d.health?.status !== 'healthy');
+      // Asegurar que defaultDevice esté presente
+      const allIds = new Set([...remote.map(d => d.id).filter(Boolean), AppState.defaultDevice]);
+      const allDevs = [...activeDevs, ...otherDevs];
+      allIds.forEach(id => {
+        if (!allDevs.find(d => d.id === id)) allDevs.push({ id });
+      });
+      devices = allDevs;
+      // Guardar mapa en estado
+      const map = {};
+      devices.forEach(d => { if (d.id) map[d.id] = d; });
+      AppState.setDeviceMap(map);
     } catch {}
-    TelemetryView.populateDeviceSelector(ids, AppState.currentDevice);
+    TelemetryView.populateDeviceSelector(devices, AppState.currentDevice);
     await loadTags();
   }
 
@@ -35,7 +48,6 @@ const TelemetryController = (() => {
       }
 
       TelemetryView.populateVariableSelector(tags);
-      TelemetryView.setConnStatus('online');
       await Promise.all([updateKpis(), loadChartData()]);
     } catch (err) {
       TelemetryView.setConnStatus('offline');
@@ -45,8 +57,13 @@ const TelemetryController = (() => {
 
   async function updateKpis() {
     try {
+      const dev = AppState.deviceMap[AppState.currentDevice];
+      const isInactive = !dev || !dev.health;
       const data = await ApiService.getLatest(AppState.currentDevice);
       TelemetryView.updateKpiCards(data);
+      if (isInactive) {
+        TelemetryView.setRunningInactive();
+      }
       TelemetryView.updateSidebarTime();
     } catch {}
   }

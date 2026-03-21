@@ -12,7 +12,7 @@ const TelemetryView = (() => {
     const map = {
       online:  ['online',  'Conectado'],
       offline: ['offline', 'Desconectado'],
-      loading: ['loading', 'Conectando…'],
+      loading: ['loading', 'Sin datos recientes'],  // online pero inactivo
     };
     const [cls, txt] = map[state] || map.offline;
     dot.className     = 'conn-dot ' + cls;
@@ -25,12 +25,24 @@ const TelemetryView = (() => {
   }
 
   // ── Device selector ─────────────────────────────────────────────────────────
-  function populateDeviceSelector(ids, currentId) {
+  function populateDeviceSelector(devices, currentId) {
     const sel = document.getElementById('device-selector');
-    sel.innerHTML = ids.map(id =>
-      '<option value="' + id + '"' + (id === currentId ? ' selected' : '') + '>' + id + '</option>'
-    ).join('');
+    sel.innerHTML = devices.map(({ id, health }) => {
+      const isActive = health?.status === 'healthy';
+      const label = isActive ? '\u25cf ' + id + ' (activo)' : '\u25cb ' + id;
+      return '<option value="' + id + '"' + (id === currentId ? ' selected' : '') + '>' + label + '</option>';
+    }).join('');
     document.getElementById('sidebar-device-id').textContent = currentId;
+  }
+
+  // Actualiza solo los textos del selector sin re-renderizar (para polling)
+  function refreshDeviceLabels(deviceMap) {
+    const sel = document.getElementById('device-selector');
+    Array.from(sel.options).forEach(opt => {
+      const dev = deviceMap[opt.value];
+      const isActive = dev?.health?.status === 'healthy';
+      opt.textContent = isActive ? '\u25cf ' + opt.value + ' (activo)' : '\u25cb ' + opt.value;
+    });
   }
 
   // ── Variable selector ────────────────────────────────────────────────────────
@@ -43,6 +55,22 @@ const TelemetryView = (() => {
     sel.innerHTML = tags.map(t =>
       '<option value="' + t + '">' + Helpers.formatTagLabel(t) + '</option>'
     ).join('');
+  }
+
+  // ── Dispositivo inactivo ────────────────────────────────────────────────────
+  function showInactiveDevice() {
+    KPI_DEFS.forEach(({ id }) => {
+      const card = document.getElementById(id);
+      if (!card) return;
+      const valEl = card.querySelector('.kpi-value');
+      if (valEl) { valEl.textContent = 'Inactivo'; valEl.style.color = 'var(--text3)'; }
+    });
+    const runEl = document.getElementById('kpi-running-val');
+    const runSt = document.getElementById('kpi-running-status');
+    if (runEl) { runEl.textContent = 'INACTIVO'; runEl.style.color = 'var(--text3)'; }
+    if (runSt) runSt.className = 'kpi-status';
+    const presEl = document.getElementById('kpi-presion-status');
+    if (presEl) presEl.className = 'kpi-status';
   }
 
   // ── KPI Cards ────────────────────────────────────────────────────────────────
@@ -59,8 +87,9 @@ const TelemetryView = (() => {
       const card = document.getElementById(id);
       if (!card) return;
       const val = data[key]?.value ?? null;
-      card.querySelector('.kpi-value').textContent =
-        val !== null ? (+val).toFixed(dec) + ' ' + unit : '—';
+      const valEl = card.querySelector('.kpi-value');
+      valEl.style.color = '';  // restaurar color si estaba marcado como inactivo
+      valEl.textContent = val !== null ? (+val).toFixed(dec) + ' ' + unit : '—';
     });
 
     // Estado presión
@@ -80,6 +109,16 @@ const TelemetryView = (() => {
       runEl.style.color = on ? 'var(--green)' : 'var(--red)';
       if (runSt) runSt.className = 'kpi-status ' + (on ? 'ok' : 'err');
     }
+  }
+
+  function setRunningInactive() {
+    const runEl = document.getElementById('kpi-running-val');
+    const runSt = document.getElementById('kpi-running-status');
+    if (runEl) {
+      runEl.textContent = 'INACTIVO';
+      runEl.style.color = 'var(--text3)';
+    }
+    if (runSt) runSt.className = 'kpi-status';
   }
 
   // ── Gráfico ──────────────────────────────────────────────────────────────────
@@ -106,8 +145,8 @@ const TelemetryView = (() => {
             datalabels: {
               display: sorted.length <= 20,
               align: 'top', anchor: 'end',
-              backgroundColor: '#1d5cb4', borderRadius: 4,
-              color: '#fbbf24', font: { weight: 'bold', size: 10 },
+              backgroundColor: '#0057d9', borderColor: '#003c96', borderWidth: 1, borderRadius: 4,
+              color: '#ffeb3b', font: { weight: 'bold', size: 10 },
               formatter: v => (+v).toFixed(1), padding: 4,
             },
           },
@@ -175,8 +214,8 @@ const TelemetryView = (() => {
 
   return {
     setConnStatus, updateSidebarTime,
-    populateDeviceSelector, populateVariableSelector,
-    updateKpiCards,
+    populateDeviceSelector, refreshDeviceLabels, populateVariableSelector,
+    updateKpiCards, showInactiveDevice, setRunningInactive,
     renderChart, updateChartHeader,
     renderTable,
   };

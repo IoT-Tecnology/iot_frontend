@@ -36,6 +36,7 @@ const AppController = (() => {
     document.getElementById('device-selector').addEventListener('change', async e => {
       AppState.setDevice(e.target.value);
       document.getElementById('sidebar-device-id').textContent = AppState.currentDevice;
+      updateSidebarForDevice(AppState.currentDevice);
       await TelemetryController.loadTags();
     });
 
@@ -59,9 +60,39 @@ const AppController = (() => {
   async function checkHealth() {
     try {
       const ok = await ApiService.getHealth();
-      TelemetryView.setConnStatus(ok ? 'online' : 'offline');
+      if (!ok) { TelemetryView.setConnStatus('offline'); return; }
+      // Backend activo — refrescar salud por dispositivo
+      await refreshDeviceHealth();
     } catch {
       TelemetryView.setConnStatus('offline');
+    }
+  }
+
+  async function refreshDeviceHealth() {
+    try {
+      const devices = await ApiService.getDeviceObjects();
+      const map = {};
+      devices.forEach(d => { if (d.id) map[d.id] = d; });
+      AppState.setDeviceMap(map);
+      TelemetryView.refreshDeviceLabels(map);
+      updateSidebarForDevice(AppState.currentDevice);
+    } catch {}
+  }
+
+  // Actualiza el punto de conexión en sidebar según la salud del dispositivo activo
+  function updateSidebarForDevice(deviceId) {
+    const dev = AppState.deviceMap[deviceId];
+    if (!dev) {
+      TelemetryView.setConnStatus('offline');
+      TelemetryView.setRunningInactive();
+      return;
+    }
+    if (dev.health?.status === 'healthy') {
+      TelemetryView.setConnStatus('online');
+    } else {
+      // Sin actividad reciente: mantener valores históricos, solo cambia estado de conexión
+      TelemetryView.setConnStatus(dev.status === 'online' ? 'loading' : 'offline');
+      TelemetryView.setRunningInactive();
     }
   }
 
