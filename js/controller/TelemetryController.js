@@ -6,19 +6,35 @@
 const TelemetryController = (() => {
 
   async function loadDevices() {
-    let devices = [{ id: AppState.defaultDevice }];
+    let devices = [];
     try {
       const remote = await ApiService.getDeviceObjects();
       // IDs activos (con health) van primero
       const activeDevs = remote.filter(d => d.id && d.health?.status === 'healthy');
       const otherDevs  = remote.filter(d => d.id && d.health?.status !== 'healthy');
-      // Asegurar que defaultDevice esté presente
-      const allIds = new Set([...remote.map(d => d.id).filter(Boolean), AppState.defaultDevice]);
+      // Consolidar IDs disponibles en backend
+      const allIds = new Set([...remote.map(d => d.id).filter(Boolean)]);
       const allDevs = [...activeDevs, ...otherDevs];
       allIds.forEach(id => {
         if (!allDevs.find(d => d.id === id)) allDevs.push({ id });
       });
       devices = allDevs;
+
+      if (!devices.length) {
+        TelemetryView.populateDeviceSelector([], '');
+        TelemetryView.populateVariableSelector([]);
+        TelemetryView.syncTelemetryLayout([]);
+        return;
+      }
+
+      // Si el actual no existe, escoger uno automático (healthy primero)
+      const existsCurrent = devices.some(d => d.id === AppState.currentDevice);
+      if (!existsCurrent) {
+        const preferred = activeDevs[0]?.id || devices[0]?.id || '';
+        AppState.defaultDevice = preferred;
+        AppState.setDevice(preferred);
+      }
+
       // Guardar mapa en estado
       const map = {};
       devices.forEach(d => { if (d.id) map[d.id] = d; });
