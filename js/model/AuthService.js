@@ -1,17 +1,23 @@
 /**
  * js/model/AuthService.js
- * Maneja login JWT, persistencia de sesión y recuperación de contraseña.
+ * Maneja login JWT, persistencia de sesion y recuperacion del usuario actual.
  */
 const AuthService = (() => {
   const TOKEN_KEY = 'rp_auth_token';
   const USER_KEY = 'rp_auth_user';
 
-  function url(path) {
-    return AppState.backendUrl + path;
-  }
+  AppState.setBackendUrl(AppConfig.apiUrl);
 
   function getToken() {
     return AppState.authToken || localStorage.getItem(TOKEN_KEY) || '';
+  }
+
+  function getStoredUser() {
+    try {
+      return JSON.parse(localStorage.getItem(USER_KEY) || 'null');
+    } catch {
+      return null;
+    }
   }
 
   function setSession(token, user) {
@@ -33,20 +39,14 @@ const AuthService = (() => {
       return false;
     }
 
+    AppState.setAuthSession(token, getStoredUser());
+
     try {
-      const response = await fetch(url('/api/auth/me'), {
-        headers: {
-          Authorization: 'Bearer ' + token
-        }
+      const data = await ApiClient.json('/api/auth/me', {}, {
+        requiresAuth: true,
+        sessionExpiredMessage: 'Tu sesion ya no es valida. Inicia sesion nuevamente.',
       });
-
-      if (!response.ok) {
-        clearSession();
-        return false;
-      }
-
-      const data = await response.json();
-      setSession(token, data.user || null);
+      setSession(token, data?.user || null);
       return true;
     } catch {
       clearSession();
@@ -54,83 +54,56 @@ const AuthService = (() => {
     }
   }
 
-  async function authenticatedFetch(path, options = {}) {
-    const token = getToken();
-    const headers = {
-      ...(options.headers || {})
-    };
-
-    if (token) {
-      headers.Authorization = 'Bearer ' + token;
-    }
-
-    const response = await fetch(url(path), {
-      ...options,
-      headers
-    });
-
-    if (response.status === 401) {
-      clearSession();
-      window.dispatchEvent(new CustomEvent('auth:required'));
-    }
-
-    return response;
-  }
-
   async function login(email, password) {
-    const response = await fetch(url('/api/auth/login'), {
+    const data = await ApiClient.json('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ email, password }),
+    }, {
+      requiresAuth: false,
     });
 
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.error || 'No se pudo iniciar sesión');
-    }
-
-    setSession(data.token, data.user);
+    setSession(data?.token || '', data?.user || null);
     return data;
   }
 
-  async function forgotPassword(email) {
-    const response = await fetch(url('/api/auth/forgot-password'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email })
-    });
-
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.error || 'No se pudo generar el restablecimiento');
+  async function logout() {
+    try {
+      await ApiClient.request('/api/auth/logout', {
+        method: 'POST',
+      }, {
+        requiresAuth: true,
+        sessionExpiredMessage: 'Tu sesion ya habia expirado.',
+      });
+    } catch (error) {
+      if (!(error instanceof ApiClient.AuthSessionError)) {
+        console.warn('[AuthService] logout remoto no disponible:', error.message);
+      }
+    } finally {
+      clearSession();
     }
-
-    return data;
   }
 
-  async function resetPassword(token, newPassword) {
-    const response = await fetch(url('/api/auth/reset-password'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token, newPassword })
-    });
+  async function getCurrentUser() {
+    const data = await ApiClient.json('/api/auth/me');
+    setSession(getToken(), data?.user || null);
+    return data?.user || null;
+  }
 
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.error || 'No se pudo restablecer la contraseña');
-    }
-
-    return data;
+  async function authenticatedFetch(path, options = {}) {
+    const { response } = await ApiClient.request(path, options);
+    return response;
   }
 
   return {
     getToken,
+    getStoredUser,
     setSession,
     clearSession,
     restoreSession,
+    logout,
+    getCurrentUser,
     authenticatedFetch,
     login,
-    forgotPassword,
-    resetPassword
   };
 })();

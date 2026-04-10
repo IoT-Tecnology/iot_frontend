@@ -4,7 +4,7 @@
  */
 const AppState = {
   // URL activa usada por ApiService en la version modular del frontend.
-  backendUrl:    'https://iot-backend-b5v5.onrender.com',
+  backendUrl:    '',
   defaultDevice: '',
   currentDevice: '',
   allTags:       [],
@@ -12,6 +12,7 @@ const AppState = {
   deviceMap:     {},     // id → objeto device con health
   authToken:     '',
   currentUser:   null,
+  sessionExpired:false,
 
   setDevice(id) {
     this.currentDevice = id || this.defaultDevice;
@@ -42,5 +43,14 @@ const AppState = {
   clearAuthSession() {
     this.authToken = '';
     this.currentUser = null;
+    this.sessionExpired = false;
+  },
+
+  setBackendUrl(url) {
+    this.backendUrl = url || '';
+  },
+
+  markSessionExpired() {
+    this.sessionExpired = true;
   },
 };
