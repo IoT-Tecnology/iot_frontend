@@ -1,69 +1,74 @@
 /**
  * js/model/ApiService.js
  * Acceso a la API REST del backend. Devuelve datos crudos.
- * Depende de: AppState
+ * Depende de: ApiClient
  */
 const ApiService = (() => {
 
   async function getHealth() {
-    const r = await fetch(AppState.backendUrl + '/api/health');
-    return r.ok;
+    const { response } = await ApiClient.request('/api/health', {}, {
+      requiresAuth: false,
+    });
+    return response.ok;
   }
 
   async function getDevices() {
-    const r = await AuthService.authenticatedFetch('/api/devices');
-    const d = await r.json();
-    return (d.devices || []).map(x => x.id).filter(Boolean);
+    const data = await ApiClient.json('/api/devices');
+    return (data?.devices || []).map(x => x.id).filter(Boolean);
   }
 
-  // Devuelve el array de objetos completos (con campo health si está activo)
   async function getDeviceObjects() {
-    const r = await AuthService.authenticatedFetch('/api/devices');
-    const d = await r.json();
-    return d.devices || [];
+    const data = await ApiClient.json('/api/devices');
+    return data?.devices || [];
   }
 
   async function getSensors(deviceId) {
-    const r = await AuthService.authenticatedFetch('/api/devices/' + deviceId + '/sensors');
-    const d = await r.json();
-    return d.tags || [];
+    const data = await ApiClient.json('/api/devices/' + deviceId + '/sensors');
+    return data?.tags || [];
   }
 
   async function getLatest(deviceId) {
-    const r = await AuthService.authenticatedFetch('/api/devices/' + deviceId + '/latest');
-    const d = await r.json();
-    return d.data || {};
+    const data = await ApiClient.json('/api/devices/' + deviceId + '/latest');
+    return data?.data || {};
   }
 
   async function getHistory(deviceId, range) {
-    const r = await AuthService.authenticatedFetch('/api/devices/' + deviceId + '/history/' + range);
-    const d = await r.json();
-    return d.data || [];
+    const data = await ApiClient.json('/api/devices/' + deviceId + '/history/' + range);
+    return data?.data || [];
   }
 
   async function getEventSummary(deviceId) {
-    const r = await AuthService.authenticatedFetch('/api/devices/' + deviceId + '/events/summary');
-    const d = await r.json();
-    return d.summary || {};
+    const data = await ApiClient.json('/api/devices/' + deviceId + '/events/summary');
+    return data?.summary || {};
   }
 
   async function getEvents(deviceId, { eventType, parameter, limit } = {}) {
-    let u = '/api/devices/' + deviceId + '/events?limit=' + (limit || 200);
-    if (eventType)  u += '&event_type=' + encodeURIComponent(eventType);
-    if (parameter)  u += '&parameter='  + encodeURIComponent(parameter);
-    const r = await AuthService.authenticatedFetch(u);
-    const d = await r.json();
-    return d.events || [];
+    let url = '/api/devices/' + deviceId + '/events?limit=' + (limit || 200);
+    if (eventType) url += '&event_type=' + encodeURIComponent(eventType);
+    if (parameter) url += '&parameter=' + encodeURIComponent(parameter);
+
+    const data = await ApiClient.json(url);
+    return data?.events || [];
   }
 
   async function addDevice(deviceId) {
-    const r = await AuthService.authenticatedFetch('/api/devices', {
+    await ApiClient.request('/api/devices', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ deviceId })
+      body: JSON.stringify({ deviceId }),
     });
-    return r.ok;
+    return true;
   }
 
-  return { getHealth, getDevices, getDeviceObjects, getSensors, getLatest, getHistory, getEventSummary, getEvents, addDevice };
+  return {
+    getHealth,
+    getDevices,
+    getDeviceObjects,
+    getSensors,
+    getLatest,
+    getHistory,
+    getEventSummary,
+    getEvents,
+    addDevice,
+  };
 })();

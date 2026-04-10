@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="api-base-url" content="https://iot-backend-b5v5.onrender.com">
   <title>ReadyPackers IoT — Monitor Industrial</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -10,7 +11,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
 </head>
-<body class="layout">
+<body class="layout auth-locked">
 
   <div id="auth-shell" class="auth-shell">
     <div class="auth-card">
@@ -27,7 +28,7 @@
         <label class="auth-label" for="login-password">Contraseña</label>
         <input id="login-password" class="auth-input" type="password" placeholder="Ready2026" required />
 
-        <button type="submit" class="auth-button">Ingresar</button>
+        <button id="login-submit" type="submit" class="auth-button">Ingresar</button>
         <button type="button" id="show-forgot-password" class="auth-link">Olvidé mi contraseña</button>
       </form>
 
@@ -301,7 +302,9 @@
   <script src="js/utils/helpers.js"></script>
 
   <!-- model -->
+  <script src="js/config/AppConfig.js"></script>
   <script src="js/model/AppState.js"></script>
+  <script src="js/model/ApiClient.js"></script>
   <script src="js/model/AuthService.js"></script>
   <script src="js/model/ApiService.js"></script>
 
@@ -312,7 +315,7 @@
   <!-- controller -->
   <script src="js/controller/TelemetryController.js"></script>
   <script src="js/controller/AuditController.js"></script>
-  <script src="js/controller/AppController.js"></script>
+  <script src="js/controller/AppControllerRuntime.js"></script>
   <script src="js/controller/AuthController.js"></script>
 </body>
 </html>

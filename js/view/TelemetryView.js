@@ -27,6 +27,13 @@ const TelemetryView = (() => {
   // ── Device selector ─────────────────────────────────────────────────────────
   function populateDeviceSelector(devices, currentId) {
     const sel = document.getElementById('device-selector');
+    if (!devices.length) {
+      sel.innerHTML = '<option value="">Sin dispositivos</option>';
+      sel.value = '';
+      document.getElementById('sidebar-device-id').textContent = '—';
+      return;
+    }
+
     sel.innerHTML = devices.map(({ id, health }) => {
       const isActive = health?.status === 'healthy';
       const label = isActive ? '\u25cf ' + id + ' (activo)' : '\u25cb ' + id;

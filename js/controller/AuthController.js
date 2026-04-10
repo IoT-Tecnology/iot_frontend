@@ -3,29 +3,39 @@
  * Gestiona login, recuperación y arranque autenticado de la app.
  */
 const AuthController = (() => {
+  let eventsBound = false;
+
   function showMessage(message, type = '') {
     const el = document.getElementById('auth-message');
     el.textContent = message || '';
     el.className = 'auth-message' + (type ? ' ' + type : '');
   }
 
-  function setVisibleForm(formId, preserveMessage = false) {
-    ['login-form', 'forgot-password-form', 'reset-password-form'].forEach((id) => {
-      const form = document.getElementById(id);
-      if (!form) return;
-      form.classList.toggle('auth-hidden', id !== formId);
-    });
-    if (!preserveMessage) {
-      showMessage('');
+  function setLoginLoading(isLoading) {
+    const button = document.getElementById('login-submit');
+    const email = document.getElementById('login-email');
+    const password = document.getElementById('login-password');
+
+    if (button) {
+      button.disabled = isLoading;
+      button.textContent = isLoading ? 'Ingresando...' : 'Ingresar';
     }
+
+    if (email) email.disabled = isLoading;
+    if (password) password.disabled = isLoading;
   }
 
-  function showAuthShell() {
+  function showAuthShell(message = '', type = '') {
     document.getElementById('auth-shell').classList.remove('auth-hidden');
+    document.body.classList.add('auth-locked');
+    showMessage(message, type);
   }
 
   function hideAuthShell() {
     document.getElementById('auth-shell').classList.add('auth-hidden');
+    document.body.classList.remove('auth-locked');
+    showMessage('');
+    setLoginLoading(false);
   }
 
   async function handleLogin(event) {
@@ -34,74 +44,47 @@ const AuthController = (() => {
     const password = document.getElementById('login-password').value;
 
     try {
+      setLoginLoading(true);
+      showMessage('Validando credenciales...', '');
       await AuthService.login(email, password);
       hideAuthShell();
-      AppController.init();
+      await AppController.enterPrivateApp();
     } catch (error) {
-      showMessage(error.message, 'err');
-    }
-  }
-
-  async function handleForgotPassword(event) {
-    event.preventDefault();
-    const email = document.getElementById('forgot-email').value.trim();
-
-    try {
-      const result = await AuthService.forgotPassword(email);
-      showMessage(result.message, 'ok');
-
-      if (result.resetToken) {
-        document.getElementById('reset-token').value = result.resetToken;
-      }
-
-      setVisibleForm('reset-password-form', true);
-    } catch (error) {
-      showMessage(error.message, 'err');
-    }
-  }
-
-  async function handleResetPassword(event) {
-    event.preventDefault();
-    const token = document.getElementById('reset-token').value.trim();
-    const newPassword = document.getElementById('reset-password').value;
-
-    try {
-      const result = await AuthService.resetPassword(token, newPassword);
-      setVisibleForm('login-form', true);
-      showMessage(result.message, 'ok');
-    } catch (error) {
-      showMessage(error.message, 'err');
+      showMessage(error.message || 'No fue posible iniciar sesion.', 'err');
+    } finally {
+      setLoginLoading(false);
     }
   }
 
   function bindEvents() {
+    if (eventsBound) return;
+    eventsBound = true;
+
     document.getElementById('login-form').addEventListener('submit', handleLogin);
-    document.getElementById('forgot-password-form').addEventListener('submit', handleForgotPassword);
-    document.getElementById('reset-password-form').addEventListener('submit', handleResetPassword);
 
-    document.getElementById('show-forgot-password').addEventListener('click', () => setVisibleForm('forgot-password-form'));
-    document.getElementById('show-reset-password').addEventListener('click', () => setVisibleForm('reset-password-form'));
-    document.getElementById('back-to-login-from-forgot').addEventListener('click', () => setVisibleForm('login-form'));
-    document.getElementById('back-to-login-from-reset').addEventListener('click', () => setVisibleForm('login-form'));
-
-    window.addEventListener('auth:required', () => {
-      showAuthShell();
-      setVisibleForm('login-form');
+    window.addEventListener('auth:required', async (event) => {
+      await AppController.leavePrivateApp();
+      showAuthShell(
+        event.detail?.message || 'Necesitas iniciar sesion para continuar.',
+        event.detail?.reason === 'expired' ? 'err' : ''
+      );
     });
   }
 
   async function init() {
     bindEvents();
+    showAuthShell('Recuperando sesion...', '');
+    setLoginLoading(true);
 
     const hasSession = await AuthService.restoreSession();
     if (hasSession) {
       hideAuthShell();
-      AppController.init();
+      await AppController.enterPrivateApp();
       return;
     }
 
-    showAuthShell();
-    setVisibleForm('login-form');
+    setLoginLoading(false);
+    showAuthShell('Inicia sesion para acceder al monitor.', '');
   }
 
   return { init };
