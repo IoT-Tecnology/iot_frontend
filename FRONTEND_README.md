@@ -44,8 +44,13 @@ Dispositivo: 441095104B78F267112345678
 ```
 frontend/
 ├── index.html      # Estructura HTML principal
-├── styles.css      # Estilos CSS personalizados
-├── app.js          # Lógica JavaScript
+├── styles/
+│   └── main.css    # Estilos CSS principales
+├── js/
+│   ├── repository/ # Acceso HTTP por dominio
+│   ├── service/    # Lógica y validaciones
+│   ├── view/       # Render DOM
+│   └── controller/ # Eventos y coordinación
 └── README.md       # Este archivo
 ```
 
@@ -110,8 +115,8 @@ Cada punto en el gráfico y fila en la tabla muestra:
 Para modificar el frontend:
 
 1. **Editar HTML**: `index.html` - Estructura y controles
-2. **Editar Estilos**: `styles.css` - Colores, layout, responsive
-3. **Editar Lógica**: `app.js` - Llamadas a API, procesamiento de datos
+2. **Editar Estilos**: `styles/main.css` - Colores, layout, responsive
+3. **Editar Lógica**: `js/repository`, `js/service`, `js/view` y `js/controller` según la capa
 
 ## Solución de Problemas
 

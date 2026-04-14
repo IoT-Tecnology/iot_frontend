@@ -1,14 +1,14 @@
 /**
  * js/controller/TelemetryController.js
  * Orquesta la pestaña Telemetría: dispositivos, etiquetas, KPIs y gráfico.
- * Depende de: AppState, ApiService, TelemetryView
+ * Depende de: AppState, TelemetryService, TelemetryView
  */
 const TelemetryController = (() => {
 
   async function loadDevices() {
     let devices = [];
     try {
-      const remote = await ApiService.getDeviceObjects();
+      const remote = await TelemetryService.getDeviceObjects();
       // IDs activos (con health) van primero
       const activeDevs = remote.filter(d => d.id && d.health?.status === 'healthy');
       const otherDevs  = remote.filter(d => d.id && d.health?.status !== 'healthy');
@@ -46,14 +46,7 @@ const TelemetryController = (() => {
 
   async function loadTags() {
     try {
-      let tags = await ApiService.getSensors(AppState.currentDevice);
-      tags = tags.filter(t => t.startsWith('telemetry_'));
-
-      // Fallback: derivar etiquetas del endpoint /latest
-      if (!tags.length) {
-        const data = await ApiService.getLatest(AppState.currentDevice);
-        tags = Object.keys(data).filter(t => t.startsWith('telemetry_'));
-      }
+      const tags = await TelemetryService.getVisibleSensors(AppState.currentDevice);
 
       AppState.setTags(tags);
       TelemetryView.syncTelemetryLayout(tags);
@@ -79,7 +72,7 @@ const TelemetryController = (() => {
     try {
       const dev = AppState.deviceMap[AppState.currentDevice];
       const isInactive = !dev || !dev.health;
-      const data = await ApiService.getLatest(AppState.currentDevice);
+      const data = await TelemetryService.getLatest(AppState.currentDevice);
       TelemetryView.updateKpiCards(data);
       if (isInactive) {
         TelemetryView.setRunningInactive();
@@ -94,7 +87,7 @@ const TelemetryController = (() => {
     if (!tag) return;
 
     try {
-      const allRows = await ApiService.getHistory(AppState.currentDevice, range);
+      const allRows = await TelemetryService.getHistory(AppState.currentDevice, range);
       const rows    = allRows.filter(row => row.tag_name === tag);
 
       TelemetryView.updateChartHeader(tag, range, rows.length);

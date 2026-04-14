@@ -70,6 +70,10 @@
         <span class="nav-icon">📋</span>
         <span class="nav-label">Auditoría</span>
       </button>
+      <button class="nav-item" data-tab="admin">
+        <span class="nav-icon">ADM</span>
+        <span class="nav-label">AdministraciÃ³n</span>
+      </button>
     </nav>
 
     <div class="sidebar-bottom">
@@ -95,9 +99,7 @@
         <h1 id="page-title">Telemetría</h1>
         <p id="page-subtitle">Datos continuos de proceso</p>
       </div>
-      <div class="topbar-controls" style="display: flex; gap: 10px; align-items: center;">
-        <input type="text" id="new-device-id" placeholder="Nuevo ID Dispositivo" class="select-styled" style="width: auto;" />
-        <button id="add-device-btn" class="btn-primary" style="padding: 6px 12px; min-width: auto; whitespace: nowrap;">Añadir</button>
+      <div class="topbar-controls">
         <select id="device-selector"></select>
       </div>
     </header>
@@ -111,7 +113,7 @@
           <div class="kpi-icon">📦</div>
           <div class="kpi-body">
             <div class="kpi-value">—</div>
-            <div class="kpi-label">Paquetes / min</div>
+            <div class="kpi-label">Productos Totales</div>
           </div>
           <div class="kpi-trend" id="kpi-ppm-trend"></div>
         </div>
@@ -119,25 +121,9 @@
           <div class="kpi-icon">🎯</div>
           <div class="kpi-body">
             <div class="kpi-value">—</div>
-            <div class="kpi-label">Set Point PPM</div>
+            <div class="kpi-label">SP Peso Promedio</div>
           </div>
           <div class="kpi-trend" id="kpi-sp-ppm-trend"></div>
-        </div>
-        <div class="kpi-card" id="kpi-th">
-          <div class="kpi-icon">🌡</div>
-          <div class="kpi-body">
-            <div class="kpi-value">—</div>
-            <div class="kpi-label">Temp. Mordaza H</div>
-          </div>
-          <div class="kpi-trend" id="kpi-th-trend"></div>
-        </div>
-        <div class="kpi-card" id="kpi-tv">
-          <div class="kpi-icon">🌡</div>
-          <div class="kpi-body">
-            <div class="kpi-value">—</div>
-            <div class="kpi-label">Temp. Mordaza V</div>
-          </div>
-          <div class="kpi-trend" id="kpi-tv-trend"></div>
         </div>
         <div class="kpi-card" id="kpi-peso">
           <div class="kpi-icon">⚖</div>
@@ -146,22 +132,6 @@
             <div class="kpi-label">Peso Promedio</div>
           </div>
           <div class="kpi-trend" id="kpi-peso-trend"></div>
-        </div>
-        <div class="kpi-card" id="kpi-presion">
-          <div class="kpi-icon">💨</div>
-          <div class="kpi-body">
-            <div class="kpi-value">—</div>
-            <div class="kpi-label">Presión Aire</div>
-          </div>
-          <div class="kpi-status" id="kpi-presion-status"></div>
-        </div>
-        <div class="kpi-card" id="kpi-running">
-          <div class="kpi-icon">⚡</div>
-          <div class="kpi-body">
-            <div class="kpi-value" id="kpi-running-val">—</div>
-            <div class="kpi-label">Estado Máquina</div>
-          </div>
-          <div class="kpi-status" id="kpi-running-status"></div>
         </div>
       </div>
 
@@ -293,6 +263,167 @@
 
     </section>
 
+    <section id="tab-admin" class="tab-content">
+      <div id="admin-global-message" class="admin-message"></div>
+
+      <div class="admin-grid">
+        <div class="card admin-panel">
+          <div class="card-header">
+            <span class="card-title">Departamentos</span>
+          </div>
+          <form id="admin-department-form" class="admin-form">
+            <label class="admin-label" for="admin-department-name">Nombre</label>
+            <div class="admin-inline-form">
+              <input id="admin-department-name" class="admin-input" type="text" placeholder="Cauca" required>
+              <button class="btn-primary admin-submit" type="submit">Crear</button>
+            </div>
+            <div id="admin-department-message" class="admin-message"></div>
+          </form>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Departamento</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody id="admin-departments-body">
+                <tr><td colspan="3" class="empty-row">Cargando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card admin-panel">
+          <div class="card-header">
+            <span class="card-title">Clientes</span>
+          </div>
+          <form id="admin-user-form" class="admin-form admin-form-grid">
+            <div>
+              <label class="admin-label" for="admin-user-name">Nombre</label>
+              <input id="admin-user-name" class="admin-input" type="text" required>
+            </div>
+            <div>
+              <label class="admin-label" for="admin-user-email">Email</label>
+              <input id="admin-user-email" class="admin-input" type="email" required>
+            </div>
+            <div>
+              <label class="admin-label" for="admin-user-password">Password inicial</label>
+              <input id="admin-user-password" class="admin-input" type="password" required>
+            </div>
+            <div>
+              <label class="admin-label" for="admin-user-address">Dirección</label>
+              <input id="admin-user-address" class="admin-input" type="text">
+            </div>
+            <div>
+              <label class="admin-label" for="admin-user-department">Departamento</label>
+              <select id="admin-user-department" class="admin-input" required></select>
+            </div>
+            <div>
+              <label class="admin-label" for="admin-user-role">Rol</label>
+              <select id="admin-user-role" class="admin-input">
+                <option value="client">Cliente</option>
+                <option value="public_client">Cliente público</option>
+              </select>
+            </div>
+            <div>
+              <label class="admin-label" for="admin-user-status">Estado</label>
+              <select id="admin-user-status" class="admin-input">
+                <option value="active">Activo</option>
+                <option value="inactive">Inactivo</option>
+              </select>
+            </div>
+            <div class="admin-form-actions">
+              <button class="btn-primary admin-submit" type="submit">Crear cliente</button>
+            </div>
+            <div id="admin-user-message" class="admin-message admin-form-wide"></div>
+          </form>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Email</th>
+                  <th>Departamento</th>
+                  <th>Rol</th>
+                  <th>Estado</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody id="admin-users-body">
+                <tr><td colspan="6" class="empty-row">Cargando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card admin-panel admin-panel-wide">
+          <div class="card-header">
+            <span class="card-title">Máquinas</span>
+          </div>
+          <form id="admin-machine-form" class="admin-form admin-form-grid">
+            <div>
+              <label class="admin-label" for="admin-machine-user">Cliente propietario</label>
+              <select id="admin-machine-user" class="admin-input" required></select>
+            </div>
+            <div>
+              <label class="admin-label" for="admin-machine-name">Nombre visible</label>
+              <input id="admin-machine-name" class="admin-input" type="text" required>
+            </div>
+            <div>
+              <label class="admin-label" for="admin-machine-device-key">deviceKey</label>
+              <input id="admin-machine-device-key" class="admin-input" type="text" required>
+            </div>
+            <div>
+              <label class="admin-label" for="admin-machine-type">Tipo</label>
+              <input id="admin-machine-type" class="admin-input" type="text" value="HMI">
+            </div>
+            <div>
+              <label class="admin-label" for="admin-machine-location">Ubicación</label>
+              <input id="admin-machine-location" class="admin-input" type="text">
+            </div>
+            <div>
+              <label class="admin-label" for="admin-machine-status">Estado</label>
+              <select id="admin-machine-status" class="admin-input">
+                <option value="active">Activa</option>
+                <option value="inactive">Inactiva</option>
+              </select>
+            </div>
+            <div class="admin-form-wide">
+              <label class="admin-label" for="admin-machine-description">Descripción</label>
+              <textarea id="admin-machine-description" class="admin-input admin-textarea"></textarea>
+              <p class="admin-help">Debe ser exactamente el numero del dispositivo Xinje. El backend escucha {deviceKey}/events solo si esta maquina esta activa.</p>
+            </div>
+            <div class="admin-form-actions">
+              <button class="btn-primary admin-submit" type="submit">Crear máquina</button>
+            </div>
+            <div id="admin-machine-message" class="admin-message admin-form-wide"></div>
+          </form>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>deviceKey</th>
+                  <th>Cliente</th>
+                  <th>Ubicación</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="admin-machines-body">
+                <tr><td colspan="6" class="empty-row">Cargando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div id="admin-machine-sensors" class="sensor-chip-list">
+            <div class="summary-empty">Selecciona una máquina para ver variables</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     </div><!-- /.content -->
 
     <footer class="main-footer">ReadyPackers — Sistema de Adquisición de Datos IoT 2026</footer>
@@ -305,16 +436,34 @@
   <script src="js/config/AppConfig.js"></script>
   <script src="js/model/AppState.js"></script>
   <script src="js/model/ApiClient.js"></script>
-  <script src="js/model/AuthService.js"></script>
-  <script src="js/model/ApiService.js"></script>
+
+  <!-- repository -->
+  <script src="js/repository/AuthRepository.js"></script>
+  <script src="js/repository/DepartmentRepository.js"></script>
+  <script src="js/repository/UserRepository.js"></script>
+  <script src="js/repository/MachineRepository.js"></script>
+  <script src="js/repository/TelemetryRepository.js"></script>
+  <script src="js/repository/AuditRepository.js"></script>
+
+  <!-- service -->
+  <script src="js/service/AuthSessionService.js"></script>
+  <script src="js/service/RoleAccessService.js"></script>
+  <script src="js/service/DepartmentService.js"></script>
+  <script src="js/service/UserService.js"></script>
+  <script src="js/service/MachineService.js"></script>
+  <script src="js/service/TelemetryService.js"></script>
+  <script src="js/service/AuditService.js"></script>
+  <script src="js/service/AdminDashboardService.js"></script>
 
   <!-- view -->
   <script src="js/view/TelemetryView.js"></script>
   <script src="js/view/AuditView.js"></script>
+  <script src="js/view/AdminView.js"></script>
 
   <!-- controller -->
   <script src="js/controller/TelemetryController.js"></script>
   <script src="js/controller/AuditController.js"></script>
+  <script src="js/controller/AdminController.js"></script>
   <script src="js/controller/AppControllerRuntime.js"></script>
   <script src="js/controller/AuthController.js"></script>
 </body>

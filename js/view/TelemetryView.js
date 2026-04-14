@@ -76,24 +76,18 @@ const TelemetryView = (() => {
       const card = document.getElementById(id);
       if (!card) return;
       const valEl = card.querySelector('.kpi-value');
-      if (valEl) { valEl.textContent = 'Inactivo'; valEl.style.color = 'var(--text3)'; }
+      if (valEl) {
+        valEl.textContent = 'Inactivo';
+        valEl.classList.add('is-muted');
+      }
     });
-    const runEl = document.getElementById('kpi-running-val');
-    const runSt = document.getElementById('kpi-running-status');
-    if (runEl) { runEl.textContent = 'INACTIVO'; runEl.style.color = 'var(--text3)'; }
-    if (runSt) runSt.className = 'kpi-status';
-    const presEl = document.getElementById('kpi-presion-status');
-    if (presEl) presEl.className = 'kpi-status';
   }
 
   // ── KPI Cards ────────────────────────────────────────────────────────────────
   const KPI_DEFS = [
-    { id: 'kpi-ppm',    key: 'telemetry_pv_ppm',            unit: 'ppm', dec: 1 },
-    { id: 'kpi-sp-ppm', key: 'telemetry_sp_velocidad_ppm',  unit: 'ppm', dec: 1 },
-    { id: 'kpi-th',     key: 'telemetry_pv_temp_mordaza_H', unit: '°C',  dec: 1 },
-    { id: 'kpi-tv',     key: 'telemetry_pv_temp_mordaza_V', unit: '°C',  dec: 1 },
-    { id: 'kpi-peso',   key: 'telemetry_pv_peso_promedio',  unit: 'g',   dec: 1 },
-    { id: 'kpi-presion',key: 'telemetry_pv_presion_aire',   unit: 'bar', dec: 2 },
+    { id: 'kpi-ppm',    key: 'telemetry_cantidad_productos_total', unit: '',  dec: 0 },
+    { id: 'kpi-sp-ppm', key: 'telemetry_sp_peso_promedio',         unit: 'g', dec: 1 },
+    { id: 'kpi-peso',   key: 'telemetry_pv_peso_promedio',         unit: 'g', dec: 1 },
   ];
 
   function syncTelemetryLayout(tags) {
@@ -102,18 +96,13 @@ const TelemetryView = (() => {
     KPI_DEFS.forEach(({ id, key }) => {
       const card = document.getElementById(id);
       if (!card) return;
-      card.style.display = activeTags.has(key) ? '' : 'none';
+      card.classList.toggle('is-hidden', !activeTags.has(key));
     });
-
-    const runningCard = document.getElementById('kpi-running');
-    if (runningCard) {
-      runningCard.style.display = activeTags.has('telemetry_is_running') ? '' : 'none';
-    }
 
     const variableSelector = document.getElementById('variable-selector');
     const controlsBar = variableSelector?.closest('.controls-bar');
     if (controlsBar) {
-      controlsBar.style.display = tags.length ? '' : 'none';
+      controlsBar.classList.toggle('is-hidden', !tags.length);
     }
   }
 
@@ -123,37 +112,12 @@ const TelemetryView = (() => {
       if (!card) return;
       const val = data[key]?.value ?? null;
       const valEl = card.querySelector('.kpi-value');
-      valEl.style.color = '';  // restaurar color si estaba marcado como inactivo
-      valEl.textContent = val !== null ? (+val).toFixed(dec) + ' ' + unit : '—';
+      valEl.classList.remove('is-muted');
+      valEl.textContent = val !== null ? (+val).toFixed(dec) + (unit ? ' ' + unit : '') : '—';
     });
-
-    // Estado presión
-    const presVal = data['telemetry_pv_presion_aire']?.value;
-    const presEl  = document.getElementById('kpi-presion-status');
-    if (presEl && presVal !== undefined) {
-      presEl.className = 'kpi-status ' + (+presVal < 5 ? 'err' : +presVal < 5.5 ? 'warn' : 'ok');
-    }
-
-    // Estado máquina
-    const runVal = data['telemetry_is_running']?.value;
-    const runEl  = document.getElementById('kpi-running-val');
-    const runSt  = document.getElementById('kpi-running-status');
-    if (runEl && runVal !== undefined) {
-      const on = runVal == 1 || runVal === true || runVal === 'true';
-      runEl.textContent = on ? 'EN MARCHA' : 'PARADA';
-      runEl.style.color = on ? 'var(--green)' : 'var(--red)';
-      if (runSt) runSt.className = 'kpi-status ' + (on ? 'ok' : 'err');
-    }
   }
 
   function setRunningInactive() {
-    const runEl = document.getElementById('kpi-running-val');
-    const runSt = document.getElementById('kpi-running-status');
-    if (runEl) {
-      runEl.textContent = 'INACTIVO';
-      runEl.style.color = 'var(--text3)';
-    }
-    if (runSt) runSt.className = 'kpi-status';
   }
 
   // ── Gráfico ──────────────────────────────────────────────────────────────────

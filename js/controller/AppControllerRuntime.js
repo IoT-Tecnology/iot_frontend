@@ -9,25 +9,57 @@ const AppController = (() => {
   const TAB_META = {
     telemetry: { title: 'Telemetria', subtitle: 'Datos continuos de proceso' },
     audit: { title: 'Auditoria', subtitle: 'Historial de configuracion y alarmas' },
+    admin: { title: 'Administracion', subtitle: 'Clientes, departamentos y maquinas' },
   };
+
+  function getActiveTab() {
+    return document.querySelector('.nav-item.active')?.dataset.tab || 'telemetry';
+  }
+
+  function activateTab(tab) {
+    const button = document.querySelector('.nav-item[data-tab="' + tab + '"]');
+    const section = document.getElementById('tab-' + tab);
+    if (!button || !section || button.classList.contains('is-hidden')) return;
+
+    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(item => item.classList.remove('active'));
+    button.classList.add('active');
+    section.classList.add('active');
+
+    const meta = TAB_META[tab] || {};
+    document.getElementById('page-title').textContent = meta.title || '';
+    document.getElementById('page-subtitle').textContent = meta.subtitle || '';
+
+    if (tab === 'audit') {
+      AuditController.refresh();
+    }
+
+    if (tab === 'admin') {
+      AdminController.activate();
+    }
+  }
+
+  function applyRoleNavigation() {
+    const allowedTabs = RoleAccessService.getAllowedTabs();
+    document.querySelectorAll('.nav-item').forEach(button => {
+      button.classList.toggle('is-hidden', !allowedTabs.includes(button.dataset.tab));
+    });
+
+    document.querySelectorAll('.tab-content').forEach(section => {
+      const tab = section.id.replace(/^tab-/, '');
+      section.classList.toggle('is-hidden', !allowedTabs.includes(tab));
+    });
+
+    if (!allowedTabs.includes(getActiveTab())) {
+      activateTab(allowedTabs[0] || 'telemetry');
+    }
+  }
 
   function setupTabs() {
     document.querySelectorAll('.nav-item').forEach(btn => {
       btn.addEventListener('click', () => {
         const tab = btn.dataset.tab;
-
-        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(section => section.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById('tab-' + tab).classList.add('active');
-
-        const meta = TAB_META[tab] || {};
-        document.getElementById('page-title').textContent = meta.title || '';
-        document.getElementById('page-subtitle').textContent = meta.subtitle || '';
-
-        if (tab === 'audit') {
-          AuditController.refresh();
-        }
+        activateTab(tab);
       });
     });
   }
@@ -46,23 +78,8 @@ const AppController = (() => {
     document.getElementById('load-events-btn').addEventListener('click', () => AuditController.refresh());
     document.getElementById('refresh-audit-btn').addEventListener('click', () => AuditController.refresh());
 
-    document.getElementById('add-device-btn').addEventListener('click', async () => {
-      const input = document.getElementById('new-device-id');
-      const newId = input.value.trim();
-      if (!newId) return;
-
-      try {
-        await ApiService.addDevice(newId);
-        input.value = '';
-        AppState.setDevice(newId);
-        await TelemetryController.loadDevices();
-      } catch (error) {
-        console.error('[AppController] addDevice', error);
-      }
-    });
-
     document.getElementById('logout-btn').addEventListener('click', async () => {
-      await AuthService.logout();
+      await AuthSessionService.logout();
       await leavePrivateApp();
       window.dispatchEvent(new CustomEvent('auth:required', {
         detail: {
@@ -74,10 +91,10 @@ const AppController = (() => {
   }
 
   async function checkHealth() {
-    if (!AuthService.getToken()) return;
+    if (!AuthSessionService.getToken()) return;
 
     try {
-      const ok = await ApiService.getHealth();
+      const ok = await TelemetryService.getHealth();
       if (!ok) {
         TelemetryView.setConnStatus('offline');
         return;
@@ -91,7 +108,7 @@ const AppController = (() => {
 
   async function refreshDeviceHealth() {
     try {
-      const devices = await ApiService.getDeviceObjects();
+      const devices = await TelemetryService.getDeviceObjects();
       const map = {};
       devices.forEach(device => {
         if (device.id) map[device.id] = device;
@@ -149,6 +166,7 @@ const AppController = (() => {
 
     AuditView.setSummaryLoading();
     AuditView.setEventsLoading();
+    AdminController.reset();
 
     document.getElementById('sidebar-user-email').textContent = '—';
     document.getElementById('sidebar-device-id').textContent = '—';
@@ -160,10 +178,12 @@ const AppController = (() => {
     bootstrapped = true;
     setupTabs();
     setupEventListeners();
+    AdminController.bindEvents();
   }
 
   async function enterPrivateApp() {
     bootstrap();
+    applyRoleNavigation();
     document.getElementById('sidebar-user-email').textContent = AppState.currentUser?.email || '—';
     await checkHealth();
     await TelemetryController.loadDevices();

@@ -293,6 +293,8 @@ body.auth-locked { overflow: hidden; }
 .topbar-title p  { font-size: 12px; color: var(--text3); margin-top: 1px; }
 
 .topbar-controls { display: flex; align-items: center; gap: 12px; }
+.is-hidden { display: none !important; }
+.is-muted { color: var(--text3) !important; }
 
 .dev-selector-wrap { display: flex; align-items: center; gap: 8px; }
 .dev-selector-wrap label { font-size: 12px; color: var(--text2); white-space: nowrap; }
@@ -495,6 +497,15 @@ td {
 
 td:first-child { color: var(--text3); font-size: 12px; }
 
+.table-text-sm { font-size: 12px; }
+.table-detail-cell {
+  color: var(--text3);
+  font-size: 12px;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .empty-row {
   text-align: center;
   color: var(--text3);
@@ -548,6 +559,156 @@ td:first-child { color: var(--text3); font-size: 12px; }
 .summary-meta  { font-size: 11px; color: var(--text3); margin-top: 6px; }
 .summary-empty { padding: 24px; color: var(--text3); font-size: 13px; text-align: center; }
 
+/* ── ADMIN ─────────────────────────────────────────────────────────────── */
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.admin-panel-wide {
+  grid-column: 1 / -1;
+}
+
+.admin-form {
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg3);
+}
+
+.admin-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.admin-form-wide {
+  grid-column: 1 / -1;
+}
+
+.admin-form-actions {
+  display: flex;
+  align-items: end;
+}
+
+.admin-inline-form {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.admin-label {
+  display: block;
+  color: var(--text2);
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.admin-input {
+  width: 100%;
+  min-height: 36px;
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  background: var(--bg2);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  padding: 8px 10px;
+  outline: none;
+}
+
+.admin-input:focus {
+  border-color: var(--brand2);
+  box-shadow: 0 0 0 3px rgba(36,104,200,.12);
+}
+
+.admin-textarea {
+  min-height: 76px;
+  resize: vertical;
+}
+
+.admin-submit {
+  min-height: 36px;
+  border: 0;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.admin-message {
+  min-height: 18px;
+  margin-top: 8px;
+  color: var(--text3);
+  font-size: 12px;
+}
+
+.admin-message.ok { color: var(--green); }
+.admin-message.err { color: var(--red); }
+
+.admin-help {
+  color: var(--text3);
+  font-size: 12px;
+  line-height: 1.45;
+  margin-top: 8px;
+}
+
+.admin-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px 9px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.status-active {
+  background: rgba(22,163,74,.10);
+  border-color: rgba(22,163,74,.22);
+  color: #15803d;
+}
+
+.status-inactive {
+  background: rgba(220,38,38,.10);
+  border-color: rgba(220,38,38,.22);
+  color: #b91c1c;
+}
+
+.sensor-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 14px 18px;
+  border-top: 1px solid var(--border);
+}
+
+.sensor-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg3);
+  color: var(--text2);
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.sensor-chip small {
+  color: var(--text3);
+  font-size: 10px;
+}
+
 /* ── SECTION TITLE ────────────────────────────── */
 .section-title {
   font-size: 12px; font-weight: 600;
@@ -592,4 +753,12 @@ td:first-child { color: var(--text3); font-size: 12px; }
   .content { padding: 14px; }
   .kpi-grid { grid-template-columns: repeat(2, 1fr); }
   .chart-wrap { height: 260px; }
+  .admin-grid,
+  .admin-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .admin-inline-form {
+    align-items: stretch;
+    flex-direction: column;
+  }
 }

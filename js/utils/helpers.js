@@ -3,6 +3,13 @@
  * Funciones puras de formato. Sin dependencias.
  */
 const Helpers = (() => {
+  const VISIBLE_VARIABLE_TAGS = [
+    'telemetry_pv_peso_promedio',
+    'telemetry_sp_peso_promedio',
+    'telemetry_cantidad_productos_total',
+  ];
+
+  const VISIBLE_VARIABLE_SET = new Set(VISIBLE_VARIABLE_TAGS);
 
   function fmt2(v) {
     return typeof v === 'number'
@@ -46,6 +53,14 @@ const Helpers = (() => {
       .replace(/\bppm\b/i, 'PPM').replace(/\bms\b/i, 'ms');
   }
 
+  function isVisibleVariableTag(tag) {
+    return VISIBLE_VARIABLE_SET.has(tag);
+  }
+
+  function filterVisibleVariableTags(tags) {
+    return VISIBLE_VARIABLE_TAGS.filter(tag => tags.includes(tag));
+  }
+
   function fmtEventType(t) {
     const m = {
       SETPOINT_CHANGE: 'SetPoint', STATE_CHANGE: 'Estado',
@@ -63,5 +78,19 @@ const Helpers = (() => {
       : '<span class="val-bool-false">FALSE</span>';
   }
 
-  return { fmt2, toDate, fmtTime, fmtDateTime, formatTagLabel, fmtEventType, boolHtml };
+  function escapeHtml(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  return {
+    fmt2, toDate, fmtTime, fmtDateTime,
+    formatTagLabel, isVisibleVariableTag, filterVisibleVariableTags,
+    fmtEventType, boolHtml, escapeHtml,
+    VISIBLE_VARIABLE_TAGS,
+  };
 })();

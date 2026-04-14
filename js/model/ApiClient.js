@@ -52,7 +52,8 @@ const ApiClient = (() => {
     } = config;
 
     const headers = createHeaders(options.headers, includeJsonHeader);
-    const token = requiresAuth ? AuthService.getToken() : '';
+    const session = typeof AuthSessionService !== 'undefined' ? AuthSessionService : null;
+    const token = requiresAuth && session ? session.getToken() : '';
 
     if (requiresAuth && token) {
       headers.Authorization = 'Bearer ' + token;
@@ -66,7 +67,7 @@ const ApiClient = (() => {
     const data = await parseResponse(response);
 
     if (response.status === 401 || response.status === 403) {
-      AuthService.clearSession();
+      if (session) session.clearSession();
       window.dispatchEvent(new CustomEvent('auth:required', {
         detail: {
           reason: 'expired',

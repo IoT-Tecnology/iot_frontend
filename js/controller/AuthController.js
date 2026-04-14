@@ -46,7 +46,7 @@ const AuthController = (() => {
     try {
       setLoginLoading(true);
       showMessage('Validando credenciales...', '');
-      await AuthService.login(email, password);
+      await AuthSessionService.login(email, password);
       hideAuthShell();
       await AppController.enterPrivateApp();
     } catch (error) {
@@ -79,7 +79,7 @@ const AuthController = (() => {
     showAuthShell('Recuperando sesion...', '');
     setLoginLoading(true);
 
-    const hasSession = await AuthService.restoreSession();
+    const hasSession = await AuthSessionService.restoreSession();
     if (hasSession) {
       hideAuthShell();
       await AppController.enterPrivateApp();

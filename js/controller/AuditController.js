@@ -1,15 +1,14 @@
 /**
  * js/controller/AuditController.js
  * Orquesta la pestaña Auditoría: resumen de configuración y tabla de eventos.
- * Depende de: AppState, ApiService, AuditView
+ * Depende de: AppState, AuditService, AuditView
  */
 const AuditController = (() => {
 
   async function loadEventSummary() {
     AuditView.setSummaryLoading();
     try {
-      const summary = await ApiService.getEventSummary(AppState.currentDevice);
-      const items   = Object.values(summary);
+      const items = await AuditService.getVisibleEventSummary(AppState.currentDevice);
       AuditView.renderSummaryGrid(items);
       AuditView.populateParamFilter(items);
     } catch (err) {
@@ -24,8 +23,8 @@ const AuditController = (() => {
       const eventType = document.getElementById('evt-type-filter').value;
       const parameter = document.getElementById('evt-param-filter').value;
       const limit     = document.getElementById('evt-limit-filter').value;
-      const events    = await ApiService.getEvents(AppState.currentDevice, { eventType, parameter, limit });
-      AuditView.renderEventsTable(events);
+      const visibleEvents = await AuditService.getVisibleEvents(AppState.currentDevice, { eventType, parameter, limit });
+      AuditView.renderEventsTable(visibleEvents);
     } catch (err) {
       AuditView.setEventsError();
       console.error('[AuditController] loadEvents', err);

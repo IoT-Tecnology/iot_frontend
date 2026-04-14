@@ -1,8 +1,8 @@
 /**
- * js/model/AuthService.js
- * Maneja login JWT, persistencia de sesion y recuperacion del usuario actual.
+ * js/service/AuthSessionService.js
+ * Session persistence and authenticated user lifecycle.
  */
-const AuthService = (() => {
+const AuthSessionService = (() => {
   const TOKEN_KEY = 'rp_auth_token';
   const USER_KEY = 'rp_auth_user';
   const BACKEND_URL_KEY = 'rp_auth_backend_url';
@@ -55,11 +55,8 @@ const AuthService = (() => {
     AppState.setAuthSession(token, getStoredUser());
 
     try {
-      const data = await ApiClient.json('/api/auth/me', {}, {
-        requiresAuth: true,
-        sessionExpiredMessage: 'Tu sesion ya no es valida. Inicia sesion nuevamente.',
-      });
-      setSession(token, data?.user || null);
+      const user = await AuthRepository.getCurrentUser();
+      setSession(token, user);
       return true;
     } catch {
       clearSession();
@@ -68,29 +65,17 @@ const AuthService = (() => {
   }
 
   async function login(email, password) {
-    const data = await ApiClient.json('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    }, {
-      requiresAuth: false,
-    });
-
+    const data = await AuthRepository.login(email, password);
     setSession(data?.token || '', data?.user || null);
     return data;
   }
 
   async function logout() {
     try {
-      await ApiClient.request('/api/auth/logout', {
-        method: 'POST',
-      }, {
-        requiresAuth: true,
-        sessionExpiredMessage: 'Tu sesion ya habia expirado.',
-      });
+      await AuthRepository.logout();
     } catch (error) {
       if (!(error instanceof ApiClient.AuthSessionError)) {
-        console.warn('[AuthService] logout remoto no disponible:', error.message);
+        console.warn('[AuthSessionService] logout remoto no disponible:', error.message);
       }
     } finally {
       clearSession();
@@ -98,9 +83,9 @@ const AuthService = (() => {
   }
 
   async function getCurrentUser() {
-    const data = await ApiClient.json('/api/auth/me');
-    setSession(getToken(), data?.user || null);
-    return data?.user || null;
+    const user = await AuthRepository.getCurrentUser();
+    setSession(getToken(), user);
+    return user;
   }
 
   async function authenticatedFetch(path, options = {}) {

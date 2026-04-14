@@ -44,6 +44,7 @@ const AuditView = (() => {
   // ── Param filter ─────────────────────────────────────────────────────────────
   function populateParamFilter(items) {
     const sel = document.getElementById('evt-param-filter');
+    sel.innerHTML = '<option value="">Todos</option>';
     const existing = new Set(Array.from(sel.options).map(o => o.value));
     items.forEach(e => {
       if (!existing.has(e.parameter)) {
@@ -80,11 +81,10 @@ const AuditView = (() => {
         '<td>' + Helpers.fmtDateTime(e.received_at) + '</td>' +
         '<td><span class="evt-badge evt-' + e.event_type + '">' +
           Helpers.fmtEventType(e.event_type) + '</span></td>' +
-        '<td style="font-size:12px;">' + Helpers.formatTagLabel(e.parameter) + '</td>' +
+        '<td class="table-text-sm">' + Helpers.formatTagLabel(e.parameter) + '</td>' +
         '<td>' + oldVal + '</td>' +
         '<td>' + newVal + '</td>' +
-        '<td style="color:var(--text3);font-size:12px;max-width:220px;' +
-          'overflow:hidden;text-overflow:ellipsis;">' + (e.details || '') + '</td>' +
+        '<td class="table-detail-cell">' + Helpers.escapeHtml(e.details || '') + '</td>' +
         '</tr>'
       );
     }).join('');

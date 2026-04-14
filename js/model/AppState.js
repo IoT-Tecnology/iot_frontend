@@ -3,7 +3,7 @@
  * Estado global de la aplicación. Única fuente de verdad.
  */
 const AppState = {
-  // URL activa usada por ApiService en la version modular del frontend.
+  // URL activa usada por la capa modular del frontend.
   backendUrl:    '',
   defaultDevice: '',
   currentDevice: '',
