@@ -655,6 +655,21 @@ td:first-child { color: var(--text3); font-size: 12px; }
   margin-top: 8px;
 }
 
+.admin-map {
+  height: 280px;
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg2);
+}
+
+.admin-coordinate-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(160px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
 .admin-actions {
   display: flex;
   gap: 6px;
@@ -755,6 +770,9 @@ td:first-child { color: var(--text3); font-size: 12px; }
   .chart-wrap { height: 260px; }
   .admin-grid,
   .admin-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .admin-coordinate-grid {
     grid-template-columns: 1fr;
   }
   .admin-inline-form {

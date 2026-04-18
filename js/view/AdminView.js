@@ -3,6 +3,9 @@
  * Renders administration UI. No API calls here.
  */
 const AdminView = (() => {
+  let machineMap = null;
+  let machineMarker = null;
+
   function el(id) {
     return document.getElementById(id);
   }
@@ -25,7 +28,6 @@ const AdminView = (() => {
       name: el('admin-user-name')?.value || '',
       email: el('admin-user-email')?.value || '',
       password: el('admin-user-password')?.value || '',
-      address: el('admin-user-address')?.value || '',
       departmentId: el('admin-user-department')?.value || '',
       role: el('admin-user-role')?.value || 'client',
       status: el('admin-user-status')?.value || 'active',
@@ -39,9 +41,46 @@ const AdminView = (() => {
       deviceKey: el('admin-machine-device-key')?.value || '',
       machineType: el('admin-machine-type')?.value || 'HMI',
       location: el('admin-machine-location')?.value || '',
+      pais: el('admin-machine-pais')?.value || '',
+      latitude: el('admin-machine-latitude')?.value || '',
+      longitude: el('admin-machine-longitude')?.value || '',
       description: el('admin-machine-description')?.value || '',
       status: el('admin-machine-status')?.value || 'active',
     };
+  }
+
+  function setMachineCoordinates(lat, lng) {
+    if (el('admin-machine-latitude')) el('admin-machine-latitude').value = Number(lat).toFixed(6);
+    if (el('admin-machine-longitude')) el('admin-machine-longitude').value = Number(lng).toFixed(6);
+    if (!machineMap || typeof L === 'undefined') return;
+    const position = [lat, lng];
+    if (!machineMarker) {
+      machineMarker = L.marker(position, { draggable: true }).addTo(machineMap);
+      machineMarker.on('dragend', () => {
+        const next = machineMarker.getLatLng();
+        setMachineCoordinates(next.lat, next.lng);
+      });
+      return;
+    }
+    machineMarker.setLatLng(position);
+  }
+
+  function initMachineLocationPicker() {
+    if (machineMap) {
+      window.setTimeout(() => machineMap.invalidateSize(), 0);
+      return;
+    }
+    if (typeof L === 'undefined' || !el('admin-machine-map')) return;
+    machineMap = L.map('admin-machine-map', {
+      center: [4.5709, -74.2973],
+      zoom: 5,
+      scrollWheelZoom: false,
+    });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+    }).addTo(machineMap);
+    machineMap.on('click', (event) => setMachineCoordinates(event.latlng.lat, event.latlng.lng));
+    window.setTimeout(() => machineMap.invalidateSize(), 0);
   }
 
   function resetDepartmentForm() {
@@ -54,17 +93,54 @@ const AdminView = (() => {
 
   function resetMachineForm() {
     el('admin-machine-form')?.reset();
+    setMachineSubmitLabel();
+    if (machineMap && machineMarker) {
+      machineMap.removeLayer(machineMarker);
+      machineMarker = null;
+    }
+  }
+
+  function setMachineSubmitLabel(label = 'Crear maquina') {
+    const button = el('admin-machine-form')?.querySelector('.admin-submit');
+    if (button) button.textContent = label;
+  }
+
+  function fillMachineForm(machine = {}) {
+    if (el('admin-machine-user')) el('admin-machine-user').value = machine.user_id || machine.userId || '';
+    if (el('admin-machine-name')) el('admin-machine-name').value = machine.name || '';
+    if (el('admin-machine-device-key')) el('admin-machine-device-key').value = machine.deviceKey || machine.device_key || machine.device_name || '';
+    if (el('admin-machine-type')) el('admin-machine-type').value = machine.machine_type || machine.machineType || 'HMI';
+    if (el('admin-machine-location')) el('admin-machine-location').value = machine.location || '';
+    if (el('admin-machine-pais')) el('admin-machine-pais').value = machine.pais || machine.country || '';
+    if (el('admin-machine-description')) el('admin-machine-description').value = machine.description || '';
+    if (el('admin-machine-status')) el('admin-machine-status').value = machine.status === 'inactive' ? 'inactive' : 'active';
+
+    const lat = machine.latitude ?? machine.lat;
+    const lng = machine.longitude ?? machine.lng ?? machine.lon;
+    if (lat !== undefined && lat !== null && lng !== undefined && lng !== null) {
+      setMachineCoordinates(Number(lat), Number(lng));
+      if (machineMap) machineMap.setView([Number(lat), Number(lng)], 12);
+    } else {
+      if (el('admin-machine-latitude')) el('admin-machine-latitude').value = '';
+      if (el('admin-machine-longitude')) el('admin-machine-longitude').value = '';
+      if (machineMap && machineMarker) {
+        machineMap.removeLayer(machineMarker);
+        machineMarker = null;
+      }
+    }
+
+    setMachineSubmitLabel('Guardar maquina');
   }
 
   function setLoading() {
     const rows = '<tr><td colspan="6" class="empty-row">Cargando...</td></tr>';
     if (el('admin-departments-body')) el('admin-departments-body').innerHTML = '<tr><td colspan="3" class="empty-row">Cargando...</td></tr>';
     if (el('admin-users-body')) el('admin-users-body').innerHTML = rows;
-    if (el('admin-machines-body')) el('admin-machines-body').innerHTML = rows;
+    if (el('admin-machines-body')) el('admin-machines-body').innerHTML = '<tr><td colspan="7" class="empty-row">Cargando...</td></tr>';
   }
 
   function renderDepartmentOptions(departments) {
-    const options = ['<option value="">Selecciona departamento</option>']
+    const options = ['<option value="">Sin departamento asignado</option>']
       .concat(departments.map(department =>
         '<option value="' + Helpers.escapeHtml(department.id) + '">' +
           Helpers.escapeHtml(department.name) +
@@ -137,7 +213,7 @@ const AdminView = (() => {
     if (!tbody) return;
 
     if (!machines.length) {
-      tbody.innerHTML = '<tr><td colspan="6" class="empty-row">Sin maquinas registradas</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" class="empty-row">Sin maquinas registradas</td></tr>';
       return;
     }
 
@@ -151,6 +227,7 @@ const AdminView = (() => {
           '<td>' + Helpers.escapeHtml(deviceKey || '—') + '</td>' +
           '<td>' + Helpers.escapeHtml(machine.user_name || machine.ownerName || machine.user_id || '—') + '</td>' +
           '<td>' + Helpers.escapeHtml(machine.location || '—') + '</td>' +
+          '<td>' + Helpers.escapeHtml(machine.pais || machine.country || '—') + '</td>' +
           '<td><span class="status-pill status-' + Helpers.escapeHtml(status) + '">' + Helpers.escapeHtml(status) + '</span></td>' +
           '<td class="admin-actions">' +
             '<button type="button" class="btn-ghost btn-sm" data-admin-action="toggle-machine" ' +
@@ -159,6 +236,8 @@ const AdminView = (() => {
             '</button>' +
             '<button type="button" class="btn-ghost btn-sm" data-admin-action="show-sensors" ' +
               'data-id="' + Helpers.escapeHtml(machine.id) + '">Variables</button>' +
+            '<button type="button" class="btn-ghost btn-sm" data-admin-action="locate-machine" ' +
+              'data-id="' + Helpers.escapeHtml(machine.id) + '">Ubicar</button>' +
           '</td>' +
         '</tr>'
       );
@@ -203,7 +282,10 @@ const AdminView = (() => {
     resetDepartmentForm,
     resetUserForm,
     resetMachineForm,
+    fillMachineForm,
+    setMachineSubmitLabel,
     renderDashboard,
     renderMachineSensors,
+    initMachineLocationPicker,
   };
 })();

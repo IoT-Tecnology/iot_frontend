@@ -6,9 +6,11 @@
   <title>ReadyPackers IoT — Monitor Industrial</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="styles/main.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body class="layout auth-locked">
 
@@ -312,12 +314,8 @@
               <input id="admin-user-password" class="admin-input" type="password" required>
             </div>
             <div>
-              <label class="admin-label" for="admin-user-address">Dirección</label>
-              <input id="admin-user-address" class="admin-input" type="text">
-            </div>
-            <div>
               <label class="admin-label" for="admin-user-department">Departamento</label>
-              <select id="admin-user-department" class="admin-input" required></select>
+              <select id="admin-user-department" class="admin-input"></select>
             </div>
             <div>
               <label class="admin-label" for="admin-user-role">Rol</label>
@@ -379,8 +377,27 @@
               <input id="admin-machine-type" class="admin-input" type="text" value="HMI">
             </div>
             <div>
-              <label class="admin-label" for="admin-machine-location">Ubicación</label>
-              <input id="admin-machine-location" class="admin-input" type="text">
+              <label class="admin-label" for="admin-machine-location">Departamento</label>
+              <input id="admin-machine-location" class="admin-input" type="text" placeholder="Cauca">
+            </div>
+            <div>
+              <label class="admin-label" for="admin-machine-pais">Pais</label>
+              <input id="admin-machine-pais" class="admin-input" type="text" placeholder="Colombia">
+            </div>
+            <div class="admin-form-wide">
+              <label class="admin-label">Ubicacion interna de la maquina</label>
+              <div id="admin-machine-map" class="admin-map"></div>
+              <div class="admin-coordinate-grid">
+                <div>
+                  <label class="admin-label" for="admin-machine-latitude">Latitud</label>
+                  <input id="admin-machine-latitude" class="admin-input" type="number" step="any" readonly>
+                </div>
+                <div>
+                  <label class="admin-label" for="admin-machine-longitude">Longitud</label>
+                  <input id="admin-machine-longitude" class="admin-input" type="number" step="any" readonly>
+                </div>
+              </div>
+              <p class="admin-help">Haz clic en el mapa para ubicar el pin. Estas coordenadas son internas.</p>
             </div>
             <div>
               <label class="admin-label" for="admin-machine-status">Estado</label>
@@ -392,7 +409,7 @@
             <div class="admin-form-wide">
               <label class="admin-label" for="admin-machine-description">Descripción</label>
               <textarea id="admin-machine-description" class="admin-input admin-textarea"></textarea>
-              <p class="admin-help">Debe ser exactamente el numero del dispositivo Xinje. El backend escucha {deviceKey}/events solo si esta maquina esta activa.</p>
+              <p class="admin-help">Usa este campo para notas internas de la maquina. Evita registrar direcciones exactas.</p>
             </div>
             <div class="admin-form-actions">
               <button class="btn-primary admin-submit" type="submit">Crear máquina</button>
@@ -406,13 +423,14 @@
                   <th>Nombre</th>
                   <th>deviceKey</th>
                   <th>Cliente</th>
-                  <th>Ubicación</th>
+                  <th>Departamento</th>
+                  <th>Pais</th>
                   <th>Estado</th>
                   <th>Acciones</th>
                 </tr>
               </thead>
               <tbody id="admin-machines-body">
-                <tr><td colspan="6" class="empty-row">Cargando...</td></tr>
+                <tr><td colspan="7" class="empty-row">Cargando...</td></tr>
               </tbody>
             </table>
           </div>

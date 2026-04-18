@@ -5,6 +5,8 @@
 const AdminController = (() => {
   let eventsBound = false;
   let hasLoaded = false;
+  let editingMachineId = null;
+  let cachedMachines = [];
 
   function showError(target, error, fallback) {
     AdminView.setMessage(target, error?.message || fallback, 'err');
@@ -17,6 +19,7 @@ const AdminController = (() => {
     try {
       AdminView.setLoading();
       const data = await AdminDashboardService.loadAll({ includeInactive: true });
+      cachedMachines = data.machines || [];
       AdminView.renderDashboard(data);
       hasLoaded = true;
     } catch (error) {
@@ -54,7 +57,14 @@ const AdminController = (() => {
     event.preventDefault();
     try {
       AdminView.setMessage('admin-machine-message', 'Creando maquina...');
-      await MachineService.create(AdminView.getMachineFormData());
+      const payload = AdminView.getMachineFormData();
+      if (editingMachineId) {
+        AdminView.setMessage('admin-machine-message', 'Guardando maquina...');
+        await MachineService.update(editingMachineId, payload);
+        editingMachineId = null;
+      } else {
+        await MachineService.create(payload);
+      }
       AdminView.resetMachineForm();
       AdminView.setMessage('admin-machine-message', 'Maquina guardada.', 'ok');
       await refresh();
@@ -88,6 +98,14 @@ const AdminController = (() => {
         AdminView.renderMachineSensors(sensors);
         AdminView.setMessage('admin-machine-message', '');
       }
+
+      if (action === 'locate-machine') {
+        const machine = cachedMachines.find(item => String(item.id) === String(id));
+        if (!machine) return;
+        editingMachineId = id;
+        AdminView.fillMachineForm(machine);
+        AdminView.setMessage('admin-machine-message', 'Selecciona la ubicacion en el mapa y guarda la maquina.');
+      }
     } catch (error) {
       showError('admin-global-message', error, 'No fue posible completar la accion.');
     }
@@ -105,12 +123,16 @@ const AdminController = (() => {
 
   async function activate() {
     bindEvents();
+    AdminView.initMachineLocationPicker();
     if (!hasLoaded) await refresh();
   }
 
   function reset() {
     hasLoaded = false;
+    editingMachineId = null;
+    cachedMachines = [];
     AdminView.setMessage('admin-global-message', '');
+    AdminView.resetMachineForm();
   }
 
   return {

@@ -13,12 +13,17 @@ const TelemetryService = (() => {
     }
 
     const legacyDevices = await TelemetryRepository.listLegacyDevices();
-    return legacyDevices.map(device => ({
-      ...device,
-      id: device.id,
-      deviceKey: device.id,
-      displayName: device.name || device.device_name || device.id,
-    }));
+    return legacyDevices.map(device => {
+      const deviceKey = device.device_name || device.deviceKey || device.device_key || device.id;
+      return {
+        ...device,
+        id: deviceKey,
+        deviceKey,
+        displayName: device.name || device.device_name || deviceKey,
+        location: device.location || '',
+        pais: device.pais || device.country || '',
+      };
+    });
   }
 
   async function getDeviceObjects() {
