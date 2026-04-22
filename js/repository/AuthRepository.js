@@ -23,7 +23,7 @@ const AuthRepository = (() => {
       method: 'POST',
     }, {
       requiresAuth: true,
-      sessionExpiredMessage: 'Tu sesion ya habia expirado.',
+      sessionExpiredMessage: I18nService.t('auth.sessionAlreadyExpired'),
     });
   }
 

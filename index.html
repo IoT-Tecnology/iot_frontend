@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ReadyPackers IoT — Monitor Industrial</title>
+  <title>ReadyPackers IoT - Monitor Industrial</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -13,422 +13,444 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body class="layout auth-locked">
+  <script>
+    if (new URLSearchParams(window.location.search).get('view') === 'public') {
+      document.body.classList.add('public-mode');
+      document.body.classList.remove('auth-locked');
+    }
+  </script>
+
+  <section id="public-shell" class="public-shell" aria-labelledby="public-page-title">
+    <div class="public-backdrop" aria-hidden="true"></div>
+    <header class="public-header">
+      <div class="public-brand-row">
+        <div class="public-kicker" data-i18n="common.appName">ReadyPackers</div>
+        <div class="public-header-actions">
+          <div class="public-badge" data-i18n="public.badge">Vista pública</div>
+          <button type="button" class="lang-toggle" data-language-toggle aria-label="Cambiar idioma a inglés">EN</button>
+        </div>
+      </div>
+      <div class="public-heading">
+        <h1 id="public-page-title" class="public-title" data-i18n="public.title">Mapa general de máquinas</h1>
+        <p class="public-subtitle" data-i18n="public.subtitle">Consulta la operación visible de la red industrial sin exponer la ubicación exacta de cada equipo.</p>
+      </div>
+    </header>
+
+    <main class="public-main">
+      <section class="public-panel public-panel-map" data-i18n-attrs="aria-label:public.mapAria" aria-label="Mapa de máquinas registradas">
+        <div class="public-panel-head">
+          <div>
+            <p class="public-panel-kicker" data-i18n="public.panelKicker">Cobertura pública</p>
+            <h2 class="public-panel-title" data-i18n="public.panelTitle">Monitoreo geográfico aproximado</h2>
+          </div>
+          <p class="public-panel-note" data-i18n="public.panelNote">La ubicación mostrada es aproximada y el zoom está limitado por seguridad.</p>
+        </div>
+
+        <div id="public-status" class="public-status" role="status" aria-live="polite"></div>
+        <div id="public-map" class="public-map" data-i18n-attrs="aria-label:public.mapAria" aria-label="Mapa de máquinas registradas"></div>
+      </section>
+    </main>
+  </section>
 
   <div id="auth-shell" class="auth-shell">
     <div class="auth-card">
-      <div class="auth-brand">ReadyPackers</div>
-      <h1 class="auth-title">Acceso al Monitor IoT</h1>
-      <p class="auth-subtitle">Inicia sesión con correo electrónico y contraseña.</p>
+      <div class="auth-brand" data-i18n="common.appName">ReadyPackers</div>
+      <h1 class="auth-title" data-i18n="auth.title">Acceso al Monitor IoT</h1>
+      <p class="auth-subtitle" data-i18n="auth.subtitle">Inicia sesión con correo electrónico y contraseña.</p>
 
       <div id="auth-message" class="auth-message"></div>
 
       <form id="login-form" class="auth-form">
-        <label class="auth-label" for="login-email">Correo electrónico</label>
-        <input id="login-email" class="auth-input" type="email" placeholder="" required />
+        <label class="auth-label" for="login-email" data-i18n="auth.emailLabel">Correo electrónico</label>
+        <input id="login-email" class="auth-input" type="email" required>
 
-        <label class="auth-label" for="login-password">Contraseña</label>
-        <input id="login-password" class="auth-input" type="password" placeholder="*******" required />
+        <label class="auth-label" for="login-password" data-i18n="auth.passwordLabel">Contraseña</label>
+        <input id="login-password" class="auth-input" type="password" placeholder="*******" required>
 
-        <button id="login-submit" type="submit" class="auth-button">Ingresar</button>
-        <button type="button" id="show-forgot-password" class="auth-link">Olvidé mi contraseña</button>
+        <button id="login-submit" type="submit" class="auth-button" data-i18n="auth.loginButton">Ingresar</button>
+        <button type="button" id="show-forgot-password" class="auth-link" data-i18n="auth.forgotPassword">Olvidé mi contraseña</button>
       </form>
 
       <form id="forgot-password-form" class="auth-form auth-hidden">
-        <label class="auth-label" for="forgot-email">Correo electrónico</label>
-        <input id="forgot-email" class="auth-input" type="email" placeholder="readypackers@gmail.com" required />
+        <label class="auth-label" for="forgot-email" data-i18n="auth.emailLabel">Correo electrónico</label>
+        <input id="forgot-email" class="auth-input" type="email" placeholder="readypackers@gmail.com" required>
 
-        <button type="submit" class="auth-button">Solicitar restablecimiento</button>
-        <button type="button" id="show-reset-password" class="auth-link">Ya tengo un token</button>
-        <button type="button" id="back-to-login-from-forgot" class="auth-link">Volver al login</button>
+        <button type="submit" class="auth-button" data-i18n="auth.forgotSubmit">Solicitar restablecimiento</button>
+        <button type="button" id="show-reset-password" class="auth-link" data-i18n="auth.forgotHaveToken">Ya tengo un token</button>
+        <button type="button" id="back-to-login-from-forgot" class="auth-link" data-i18n="auth.backToLogin">Volver al login</button>
       </form>
 
       <form id="reset-password-form" class="auth-form auth-hidden">
-        <label class="auth-label" for="reset-token">Token de restablecimiento</label>
-        <input id="reset-token" class="auth-input" type="text" placeholder="Pega aquí el token" required />
+        <label class="auth-label" for="reset-token" data-i18n="auth.resetTokenLabel">Token de restablecimiento</label>
+        <input id="reset-token" class="auth-input" type="text" data-i18n-attrs="placeholder:auth.resetTokenPlaceholder" placeholder="Pega aquí el token" required>
 
-        <label class="auth-label" for="reset-password">Nueva contraseña</label>
-        <input id="reset-password" class="auth-input" type="password" placeholder="Nueva contraseña" required />
+        <label class="auth-label" for="reset-password" data-i18n="auth.resetPasswordLabel">Nueva contraseña</label>
+        <input id="reset-password" class="auth-input" type="password" data-i18n-attrs="placeholder:auth.resetPasswordPlaceholder" placeholder="Nueva contraseña" required>
 
-        <button type="submit" class="auth-button">Restablecer contraseña</button>
-        <button type="button" id="back-to-login-from-reset" class="auth-link">Volver al login</button>
+        <button type="submit" class="auth-button" data-i18n="auth.resetSubmit">Restablecer contraseña</button>
+        <button type="button" id="back-to-login-from-reset" class="auth-link" data-i18n="auth.backToLogin">Volver al login</button>
       </form>
     </div>
   </div>
 
-  <!-- ═══════════════ SIDEBAR ═══════════════ -->
   <aside class="sidebar">
     <div class="sidebar-brand">
-      <div class="brand-logo">⚙ ReadyPackers</div>
-      <div class="brand-sub">IoT Monitor</div>
+      <div class="brand-logo">ReadyPackers</div>
+      <div class="brand-sub" data-i18n="common.monitorName">Monitor IoT</div>
     </div>
 
     <nav class="sidebar-nav">
       <button class="nav-item active" data-tab="telemetry">
-        <span class="nav-icon">📈</span>
-        <span class="nav-label">Telemetría</span>
+        <span class="nav-icon">TE</span>
+        <span class="nav-label" data-i18n="nav.telemetry">Telemetría</span>
       </button>
       <button class="nav-item" data-tab="audit">
-        <span class="nav-icon">📋</span>
-        <span class="nav-label">Auditoría</span>
+        <span class="nav-icon">AU</span>
+        <span class="nav-label" data-i18n="nav.audit">Auditoría</span>
       </button>
       <button class="nav-item" data-tab="admin">
-        <span class="nav-icon">ADM</span>
-        <span class="nav-label">Administración</span>
+        <span class="nav-icon">AD</span>
+        <span class="nav-label" data-i18n="nav.admin">Administración</span>
       </button>
     </nav>
 
     <div class="sidebar-bottom">
       <div class="conn-row">
         <span id="conn-dot" class="conn-dot offline"></span>
-        <span id="conn-label">Desconectado</span>
+        <span id="conn-label" data-i18n="common.disconnected">Desconectado</span>
       </div>
       <div class="sidebar-meta">
         <span id="sidebar-user-email">—</span>
         <span id="sidebar-device-id">—</span>
         <span id="sidebar-last-update">—</span>
       </div>
-      <button id="logout-btn" class="btn-ghost sidebar-logout">Cerrar sesión</button>
+      <button id="logout-btn" class="btn-ghost sidebar-logout" data-i18n="nav.logout">Cerrar sesión</button>
     </div>
   </aside>
 
-  <!-- ═══════════════ MAIN ═══════════════ -->
   <main class="main">
-
-    <!-- ─── TOP BAR ─── -->
     <header class="topbar">
       <div class="topbar-title">
-        <h1 id="page-title">Telemetría</h1>
-        <p id="page-subtitle">Datos continuos de proceso</p>
+        <h1 id="page-title" data-i18n="telemetry.pageTitle">Telemetría</h1>
+        <p id="page-subtitle" data-i18n="telemetry.pageSubtitle">Datos continuos de proceso</p>
       </div>
       <div class="topbar-controls">
+        <button type="button" class="lang-toggle" data-language-toggle aria-label="Cambiar idioma a inglés">EN</button>
         <select id="device-selector"></select>
       </div>
     </header>
 
     <div class="content">
-    <section id="tab-telemetry" class="tab-content active">
-
-      <!-- KPI Cards -->
-      <div class="kpi-grid">
-        <div class="kpi-card" id="kpi-ppm">
-          <div class="kpi-icon">📦</div>
-          <div class="kpi-body">
-            <div class="kpi-value">—</div>
-            <div class="kpi-label">Productos Totales</div>
+      <section id="tab-telemetry" class="tab-content active">
+        <div class="kpi-grid">
+          <div class="kpi-card" id="kpi-ppm">
+            <div class="kpi-icon">PPM</div>
+            <div class="kpi-body">
+              <div class="kpi-value">—</div>
+              <div class="kpi-label" data-i18n="telemetry.productsTotal">Productos Totales</div>
+            </div>
+            <div class="kpi-trend" id="kpi-ppm-trend"></div>
           </div>
-          <div class="kpi-trend" id="kpi-ppm-trend"></div>
-        </div>
-        <div class="kpi-card" id="kpi-sp-ppm">
-          <div class="kpi-icon">🎯</div>
-          <div class="kpi-body">
-            <div class="kpi-value">—</div>
-            <div class="kpi-label">SP Peso Promedio</div>
+          <div class="kpi-card" id="kpi-sp-ppm">
+            <div class="kpi-icon">SP</div>
+            <div class="kpi-body">
+              <div class="kpi-value">—</div>
+              <div class="kpi-label" data-i18n="telemetry.spAverageWeight">SP Peso Promedio</div>
+            </div>
+            <div class="kpi-trend" id="kpi-sp-ppm-trend"></div>
           </div>
-          <div class="kpi-trend" id="kpi-sp-ppm-trend"></div>
-        </div>
-        <div class="kpi-card" id="kpi-peso">
-          <div class="kpi-icon">⚖</div>
-          <div class="kpi-body">
-            <div class="kpi-value">—</div>
-            <div class="kpi-label">Peso Promedio</div>
+          <div class="kpi-card" id="kpi-peso">
+            <div class="kpi-icon">PV</div>
+            <div class="kpi-body">
+              <div class="kpi-value">—</div>
+              <div class="kpi-label" data-i18n="telemetry.averageWeight">Peso Promedio</div>
+            </div>
+            <div class="kpi-trend" id="kpi-peso-trend"></div>
           </div>
-          <div class="kpi-trend" id="kpi-peso-trend"></div>
         </div>
-      </div>
 
-      <!-- Controles gráfico -->
-      <div class="controls-bar">
-        <div class="control-group">
-          <label>Variable</label>
-          <select id="variable-selector" class="select-styled"></select>
+        <div class="controls-bar">
+          <div class="control-group">
+            <label for="variable-selector" data-i18n="telemetry.variable">Variable</label>
+            <select id="variable-selector" class="select-styled"></select>
+          </div>
+          <div class="control-group">
+            <label for="time-range-selector" data-i18n="telemetry.aggregation">Agregación</label>
+            <select id="time-range-selector" class="select-styled">
+              <option value="1min" data-i18n="telemetry.timeRange1Min">1 minuto</option>
+              <option value="5min" data-i18n="telemetry.timeRange5Min">5 minutos</option>
+              <option value="10min" data-i18n="telemetry.timeRange10Min">10 minutos</option>
+              <option value="1hour" selected data-i18n="telemetry.timeRange1Hour">1 hora</option>
+            </select>
+          </div>
+          <button id="load-data-btn" class="btn-primary" data-i18n="common.update">Actualizar</button>
         </div>
-        <div class="control-group">
-          <label>Agregación</label>
-          <select id="time-range-selector" class="select-styled">
-            <option value="1min">1 minuto</option>
-            <option value="5min">5 minutos</option>
-            <option value="10min">10 minutos</option>
-            <option value="1hour" selected>1 hora</option>
-          </select>
-        </div>
-        <button id="load-data-btn" class="btn-primary">Actualizar</button>
-      </div>
 
-      <!-- Gráfico -->
-      <div class="card chart-card">
-        <div class="card-header">
-          <span id="chart-title" class="card-title">Serie temporal</span>
-          <span class="card-badge" id="chart-count">0 puntos</span>
-        </div>
-        <div class="chart-wrap">
-          <canvas id="data-chart"></canvas>
-        </div>
-      </div>
-
-      <!-- Tabla agregados -->
-      <div class="card">
-        <div class="card-header">
-          <span class="card-title">Datos agregados</span>
-        </div>
-        <div class="table-wrap">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Timestamp</th>
-                <th>Promedio</th>
-                <th>Mínimo</th>
-                <th>Máximo</th>
-                <th>N registros</th>
-              </tr>
-            </thead>
-            <tbody id="table-body">
-              <tr><td colspan="5" class="empty-row">Selecciona una variable para cargar datos</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-    </section>
-
-    <!-- ══════════ VISTA: AUDITORÍA ══════════ -->
-    <section id="tab-audit" class="tab-content">
-
-      <!-- Resumen de configuración actual -->
-      <div class="card">
-        <div class="card-header">
-          <span class="card-title">Configuración actual de la máquina</span>
-          <button id="refresh-audit-btn" class="btn-ghost">↻ Actualizar</button>
-        </div>
-        <div id="summary-grid" class="summary-grid">
-          <div class="summary-empty">Cargando configuración...</div>
-        </div>
-      </div>
-
-      <!-- Filtros -->
-      <div class="controls-bar">
-        <div class="control-group">
-          <label>Tipo de evento</label>
-          <select id="evt-type-filter" class="select-styled">
-            <option value="">Todos</option>
-            <option value="SETPOINT_CHANGE">Cambio SetPoint</option>
-            <option value="STATE_CHANGE">Cambio Estado</option>
-            <option value="ALARM_TRIGGER">Alarma</option>
-            <option value="ALARM_CLEAR">Alarma resuelta</option>
-            <option value="TARE_ACTION">Tara báscula</option>
-            <option value="RECIPE_LOAD">Cambio receta</option>
-            <option value="CALIBRATION">Calibración</option>
-          </select>
-        </div>
-        <div class="control-group">
-          <label>Parámetro</label>
-          <select id="evt-param-filter" class="select-styled">
-            <option value="">Todos</option>
-          </select>
-        </div>
-        <div class="control-group">
-          <label>Límite</label>
-          <select id="evt-limit-filter" class="select-styled">
-            <option value="50">50</option>
-            <option value="100">100</option>
-            <option value="200" selected>200</option>
-            <option value="500">500</option>
-          </select>
-        </div>
-        <button id="load-events-btn" class="btn-primary">Filtrar</button>
-      </div>
-
-      <!-- Tabla de eventos -->
-      <div class="card">
-        <div class="card-header">
-          <span class="card-title">Historial de eventos</span>
-          <span class="card-badge" id="events-count">0 eventos</span>
-        </div>
-        <div class="table-wrap">
-          <table class="data-table events-table">
-            <thead>
-              <tr>
-                <th>Fecha / Hora</th>
-                <th>Tipo</th>
-                <th>Parámetro</th>
-                <th>Valor anterior</th>
-                <th>Valor nuevo</th>
-                <th>Detalle</th>
-              </tr>
-            </thead>
-            <tbody id="events-body">
-              <tr><td colspan="6" class="empty-row">Cargando eventos...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-    </section>
-
-    <section id="tab-admin" class="tab-content">
-      <div id="admin-global-message" class="admin-message"></div>
-
-      <div class="admin-grid">
-        <div class="card admin-panel">
+        <div class="card chart-card">
           <div class="card-header">
-            <span class="card-title">Clientes</span>
+            <span id="chart-title" class="card-title" data-i18n="telemetry.seriesTitle">Serie temporal</span>
+            <span class="card-badge" id="chart-count">0 puntos</span>
           </div>
-          <form id="admin-user-form" class="admin-form admin-form-grid">
-            <div>
-              <label class="admin-label" for="admin-user-name">Nombre</label>
-              <input id="admin-user-name" class="admin-input" type="text" required>
-            </div>
-            <div>
-              <label class="admin-label" for="admin-user-email">Email</label>
-              <input id="admin-user-email" class="admin-input" type="email" required>
-            </div>
-            <div>
-              <label class="admin-label" for="admin-user-password">Password inicial</label>
-              <input id="admin-user-password" class="admin-input" type="password" required>
-            </div>
-            <div>
-              <label class="admin-label" for="admin-user-role">Rol</label>
-              <select id="admin-user-role" class="admin-input">
-                <option value="client">Cliente</option>
-                <option value="public_client">Cliente público</option>
-              </select>
-            </div>
-            <div>
-              <label class="admin-label" for="admin-user-status">Estado</label>
-              <select id="admin-user-status" class="admin-input">
-                <option value="active">Activo</option>
-                <option value="inactive">Inactivo</option>
-              </select>
-            </div>
-            <div class="admin-form-actions">
-              <button class="btn-primary admin-submit" type="submit">Crear cliente</button>
-            </div>
-            <div id="admin-user-message" class="admin-message admin-form-wide"></div>
-          </form>
+          <div class="chart-wrap">
+            <canvas id="data-chart"></canvas>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title" data-i18n="telemetry.aggregatedData">Datos agregados</span>
+          </div>
           <div class="table-wrap">
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>Nombre</th>
-                  <th>Email</th>
-                  <th>Rol</th>
-                  <th>Estado</th>
-                  <th>Acción</th>
+                  <th data-i18n="telemetry.timestamp">Timestamp</th>
+                  <th data-i18n="telemetry.average">Promedio</th>
+                  <th data-i18n="telemetry.minimum">Mínimo</th>
+                  <th data-i18n="telemetry.maximum">Máximo</th>
+                  <th data-i18n="telemetry.records">N registros</th>
                 </tr>
               </thead>
-              <tbody id="admin-users-body">
-                <tr><td colspan="5" class="empty-row">Cargando...</td></tr>
+              <tbody id="table-body">
+                <tr><td colspan="5" class="empty-row" data-i18n="telemetry.selectVariableToLoad">Selecciona una variable para cargar datos</td></tr>
               </tbody>
             </table>
           </div>
         </div>
+      </section>
 
-        <div class="card admin-panel admin-panel-wide">
+      <section id="tab-audit" class="tab-content">
+        <div class="card">
           <div class="card-header">
-            <span class="card-title">Máquinas</span>
+            <span class="card-title" data-i18n="audit.currentConfig">Configuración actual de la máquina</span>
+            <button id="refresh-audit-btn" class="btn-ghost" data-i18n="common.update">Actualizar</button>
           </div>
-          <form id="admin-machine-form" class="admin-form admin-form-grid">
-            <div>
-              <label class="admin-label" for="admin-machine-user">Cliente propietario</label>
-              <select id="admin-machine-user" class="admin-input" required></select>
+          <div id="summary-grid" class="summary-grid">
+            <div class="summary-empty" data-i18n="audit.currentConfigLoading">Cargando configuración...</div>
+          </div>
+        </div>
+
+        <div class="controls-bar">
+          <div class="control-group">
+            <label for="evt-type-filter" data-i18n="audit.eventType">Tipo de evento</label>
+            <select id="evt-type-filter" class="select-styled">
+              <option value="" data-i18n="common.all">Todos</option>
+              <option value="SETPOINT_CHANGE" data-i18n="audit.eventTypes.SETPOINT_CHANGE">Cambio SetPoint</option>
+              <option value="STATE_CHANGE" data-i18n="audit.eventTypes.STATE_CHANGE">Cambio Estado</option>
+              <option value="ALARM_TRIGGER" data-i18n="audit.eventTypes.ALARM_TRIGGER">Alarma</option>
+              <option value="ALARM_CLEAR" data-i18n="audit.eventTypes.ALARM_CLEAR">Alarma resuelta</option>
+              <option value="TARE_ACTION" data-i18n="audit.eventTypes.TARE_ACTION">Tara báscula</option>
+              <option value="RECIPE_LOAD" data-i18n="audit.eventTypes.RECIPE_LOAD">Cambio receta</option>
+              <option value="CALIBRATION" data-i18n="audit.eventTypes.CALIBRATION">Calibración</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label for="evt-param-filter" data-i18n="audit.parameter">Parámetro</label>
+            <select id="evt-param-filter" class="select-styled">
+              <option value="" data-i18n="common.all">Todos</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label for="evt-limit-filter" data-i18n="audit.limit">Límite</label>
+            <select id="evt-limit-filter" class="select-styled">
+              <option value="50">50</option>
+              <option value="100">100</option>
+              <option value="200" selected>200</option>
+              <option value="500">500</option>
+            </select>
+          </div>
+          <button id="load-events-btn" class="btn-primary" data-i18n="common.filter">Filtrar</button>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title" data-i18n="audit.history">Historial de eventos</span>
+            <span class="card-badge" id="events-count">0 eventos</span>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table events-table">
+              <thead>
+                <tr>
+                  <th data-i18n="audit.dateTime">Fecha / Hora</th>
+                  <th data-i18n="audit.type">Tipo</th>
+                  <th data-i18n="audit.parameter">Parámetro</th>
+                  <th data-i18n="audit.previousValue">Valor anterior</th>
+                  <th data-i18n="audit.newValue">Valor nuevo</th>
+                  <th data-i18n="audit.detail">Detalle</th>
+                </tr>
+              </thead>
+              <tbody id="events-body">
+                <tr><td colspan="6" class="empty-row" data-i18n="audit.eventsLoading">Cargando eventos...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-admin" class="tab-content">
+        <div id="admin-global-message" class="admin-message"></div>
+
+        <div class="admin-grid">
+          <div class="card admin-panel">
+            <div class="card-header">
+              <span class="card-title" data-i18n="admin.clients">Clientes</span>
             </div>
-            <div>
-              <label class="admin-label" for="admin-machine-name">Nombre visible</label>
-              <input id="admin-machine-name" class="admin-input" type="text" required>
-            </div>
-            <div>
-              <label class="admin-label" for="admin-machine-device-key">deviceKey</label>
-              <input id="admin-machine-device-key" class="admin-input" type="text" required>
-            </div>
-            <div>
-              <label class="admin-label" for="admin-machine-type">Tipo</label>
-              <input id="admin-machine-type" class="admin-input" type="text" value="HMI">
-            </div>
-            <div>
-              <label class="admin-label" for="admin-machine-location">Ubicacion</label>
-              <input id="admin-machine-location" class="admin-input" type="text" placeholder="Planta principal">
-            </div>
-            <div>
-              <label class="admin-label" for="admin-machine-pais">Pais</label>
-              <input id="admin-machine-pais" class="admin-input" type="text" placeholder="Colombia">
-            </div>
-            <div class="admin-form-wide">
-              <label class="admin-label">Ubicacion interna de la maquina</label>
-              <div id="admin-machine-map" class="admin-map"></div>
-              <div class="admin-coordinate-grid">
-                <div>
-                  <label class="admin-label" for="admin-machine-latitude">Latitud</label>
-                  <input id="admin-machine-latitude" class="admin-input" type="number" step="any" readonly>
-                </div>
-                <div>
-                  <label class="admin-label" for="admin-machine-longitude">Longitud</label>
-                  <input id="admin-machine-longitude" class="admin-input" type="number" step="any" readonly>
-                </div>
+            <form id="admin-user-form" class="admin-form admin-form-grid">
+              <div>
+                <label class="admin-label" for="admin-user-name" data-i18n="admin.name">Nombre</label>
+                <input id="admin-user-name" class="admin-input" type="text" required>
               </div>
-              <p class="admin-help">Haz clic en el mapa para ubicar el pin. Estas coordenadas son internas.</p>
+              <div>
+                <label class="admin-label" for="admin-user-email" data-i18n="admin.email">Email</label>
+                <input id="admin-user-email" class="admin-input" type="email" required>
+              </div>
+              <div>
+                <label class="admin-label" for="admin-user-password" data-i18n="admin.initialPassword">Contraseña inicial</label>
+                <input id="admin-user-password" class="admin-input" type="password" required>
+              </div>
+              <div>
+                <label class="admin-label" for="admin-user-role" data-i18n="admin.role">Rol</label>
+                <select id="admin-user-role" class="admin-input">
+                  <option value="client" data-i18n="admin.clientRole">Cliente</option>
+                </select>
+              </div>
+              <div>
+                <label class="admin-label" for="admin-user-status" data-i18n="admin.status">Estado</label>
+                <select id="admin-user-status" class="admin-input">
+                  <option value="active" data-i18n="admin.statusActive">Activo</option>
+                  <option value="inactive" data-i18n="admin.statusInactive">Inactivo</option>
+                </select>
+              </div>
+              <div class="admin-form-actions">
+                <button class="btn-primary admin-submit" type="submit" data-i18n="admin.createClient">Crear cliente</button>
+              </div>
+              <div id="admin-user-message" class="admin-message admin-form-wide"></div>
+            </form>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th data-i18n="admin.name">Nombre</th>
+                    <th data-i18n="admin.email">Email</th>
+                    <th data-i18n="admin.role">Rol</th>
+                    <th data-i18n="admin.status">Estado</th>
+                    <th data-i18n="admin.action">Acción</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-users-body">
+                  <tr><td colspan="5" class="empty-row" data-i18n="admin.usersLoading">Cargando...</td></tr>
+                </tbody>
+              </table>
             </div>
-            <div>
-              <label class="admin-label" for="admin-machine-status">Estado</label>
-              <select id="admin-machine-status" class="admin-input">
-                <option value="active">Activa</option>
-                <option value="inactive">Inactiva</option>
-              </select>
-            </div>
-            <div class="admin-form-wide">
-              <label class="admin-label" for="admin-machine-description">Descripción</label>
-              <textarea id="admin-machine-description" class="admin-input admin-textarea"></textarea>
-              <p class="admin-help">Usa este campo para notas internas de la maquina. Evita registrar direcciones exactas.</p>
-            </div>
-            <div class="admin-form-actions">
-              <button class="btn-primary admin-submit" type="submit">Crear máquina</button>
-            </div>
-            <div id="admin-machine-message" class="admin-message admin-form-wide"></div>
-          </form>
-          <div class="table-wrap">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Nombre</th>
-                  <th>deviceKey</th>
-                  <th>Cliente</th>
-                  <th>Ubicacion</th>
-                  <th>Pais</th>
-                  <th>Estado</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody id="admin-machines-body">
-                <tr><td colspan="7" class="empty-row">Cargando...</td></tr>
-              </tbody>
-            </table>
           </div>
-          <div id="admin-machine-sensors" class="sensor-chip-list">
-            <div class="summary-empty">Selecciona una máquina para ver variables</div>
+
+          <div class="card admin-panel admin-panel-wide">
+            <div class="card-header">
+              <span class="card-title" data-i18n="admin.machines">Máquinas</span>
+            </div>
+            <form id="admin-machine-form" class="admin-form admin-form-grid">
+              <div>
+                <label class="admin-label" for="admin-machine-user" data-i18n="admin.ownerClient">Cliente propietario</label>
+                <select id="admin-machine-user" class="admin-input" required></select>
+              </div>
+              <div>
+                <label class="admin-label" for="admin-machine-name" data-i18n="admin.visibleName">Nombre visible</label>
+                <input id="admin-machine-name" class="admin-input" type="text" required>
+              </div>
+              <div>
+                <label class="admin-label" for="admin-machine-device-key" data-i18n="admin.deviceKey">deviceKey</label>
+                <input id="admin-machine-device-key" class="admin-input" type="text" required>
+              </div>
+              <div>
+                <label class="admin-label" for="admin-machine-type" data-i18n="admin.machineType">Tipo</label>
+                <input id="admin-machine-type" class="admin-input" type="text" value="HMI">
+              </div>
+              <div>
+                <label class="admin-label" for="admin-machine-location" data-i18n="admin.location">Ubicación</label>
+                <input id="admin-machine-location" class="admin-input" type="text" data-i18n-attrs="placeholder:admin.plantPlaceholder" placeholder="Planta principal">
+              </div>
+              <div>
+                <label class="admin-label" for="admin-machine-pais" data-i18n="admin.country">País</label>
+                <input id="admin-machine-pais" class="admin-input" type="text" data-i18n-attrs="placeholder:admin.countryPlaceholder" placeholder="Colombia">
+              </div>
+              <div class="admin-form-wide">
+                <label class="admin-label" data-i18n="admin.internalLocation">Ubicación interna de la máquina</label>
+                <div id="admin-machine-map" class="admin-map"></div>
+                <div class="admin-coordinate-grid">
+                  <div>
+                    <label class="admin-label" for="admin-machine-latitude" data-i18n="admin.latitude">Latitud</label>
+                    <input id="admin-machine-latitude" class="admin-input" type="number" step="any" readonly>
+                  </div>
+                  <div>
+                    <label class="admin-label" for="admin-machine-longitude" data-i18n="admin.longitude">Longitud</label>
+                    <input id="admin-machine-longitude" class="admin-input" type="number" step="any" readonly>
+                  </div>
+                </div>
+                <p class="admin-help" data-i18n="admin.mapHelp">Haz clic en el mapa para ubicar el pin. Estas coordenadas son internas.</p>
+              </div>
+              <div>
+                <label class="admin-label" for="admin-machine-status" data-i18n="admin.status">Estado</label>
+                <select id="admin-machine-status" class="admin-input">
+                  <option value="active" data-i18n="admin.machineStatusActive">Activa</option>
+                  <option value="inactive" data-i18n="admin.machineStatusInactive">Inactiva</option>
+                </select>
+              </div>
+              <div class="admin-form-wide">
+                <label class="admin-label" for="admin-machine-description" data-i18n="admin.description">Descripción</label>
+                <textarea id="admin-machine-description" class="admin-input admin-textarea"></textarea>
+                <p class="admin-help" data-i18n="admin.descriptionHelp">Usa este campo para notas internas de la máquina. Evita registrar direcciones exactas.</p>
+              </div>
+              <div class="admin-form-actions">
+                <button class="btn-primary admin-submit" type="submit" data-i18n="admin.createMachine">Crear máquina</button>
+              </div>
+              <div id="admin-machine-message" class="admin-message admin-form-wide"></div>
+            </form>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th data-i18n="admin.name">Nombre</th>
+                    <th data-i18n="admin.deviceKey">deviceKey</th>
+                    <th data-i18n="admin.clientRole">Cliente</th>
+                    <th data-i18n="admin.location">Ubicación</th>
+                    <th data-i18n="admin.country">País</th>
+                    <th data-i18n="admin.status">Estado</th>
+                    <th data-i18n="admin.action">Acción</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-machines-body">
+                  <tr><td colspan="7" class="empty-row" data-i18n="admin.machinesLoading">Cargando...</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div id="admin-machine-sensors" class="sensor-chip-list">
+              <div class="summary-empty" data-i18n="admin.selectMachineSensors">Selecciona una máquina para ver variables</div>
+            </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
 
-    </div><!-- /.content -->
-
-    <footer class="main-footer">ReadyPackers — Sistema de Adquisición de Datos IoT 2026</footer>
+    <footer class="main-footer" data-i18n="footer.copyright">ReadyPackers - Sistema de Adquisición de Datos IoT 2026</footer>
   </main>
 
-  <!-- utils -->
   <script defer src="js/utils/helpers.js"></script>
 
-  <!-- model -->
+  <script defer src="internationalizacion/es.js"></script>
+  <script defer src="internationalizacion/en.js"></script>
+
   <script type="module" src="js/config/AppConfig.js"></script>
   <script defer src="js/model/AppState.js"></script>
   <script defer src="js/model/ApiClient.js"></script>
 
-  <!-- repository -->
   <script defer src="js/repository/AuthRepository.js"></script>
   <script defer src="js/repository/UserRepository.js"></script>
   <script defer src="js/repository/MachineRepository.js"></script>
   <script defer src="js/repository/TelemetryRepository.js"></script>
   <script defer src="js/repository/AuditRepository.js"></script>
+  <script defer src="js/repository/PublicRepository.js"></script>
 
-  <!-- service -->
+  <script defer src="js/service/I18nService.js"></script>
   <script defer src="js/service/AuthSessionService.js"></script>
   <script defer src="js/service/RoleAccessService.js"></script>
   <script defer src="js/service/UserService.js"></script>
@@ -436,17 +458,18 @@
   <script defer src="js/service/TelemetryService.js"></script>
   <script defer src="js/service/AuditService.js"></script>
   <script defer src="js/service/AdminDashboardService.js"></script>
+  <script defer src="js/service/PublicService.js"></script>
 
-  <!-- view -->
   <script defer src="js/view/TelemetryView.js"></script>
   <script defer src="js/view/AuditView.js"></script>
   <script defer src="js/view/AdminView.js"></script>
+  <script defer src="js/view/PublicView.js"></script>
 
-  <!-- controller -->
   <script defer src="js/controller/TelemetryController.js"></script>
   <script defer src="js/controller/AuditController.js"></script>
   <script defer src="js/controller/AdminController.js"></script>
   <script defer src="js/controller/AppControllerRuntime.js"></script>
+  <script defer src="js/controller/PublicController.js"></script>
   <script defer src="js/controller/AuthController.js"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 /**
  * js/utils/helpers.js
- * Funciones puras de formato. Sin dependencias.
+ * Pure formatting helpers.
  */
 const Helpers = (() => {
   const VISIBLE_VARIABLE_TAGS = [
@@ -11,46 +11,65 @@ const Helpers = (() => {
 
   const VISIBLE_VARIABLE_SET = new Set(VISIBLE_VARIABLE_TAGS);
 
-  function fmt2(v) {
-    return typeof v === 'number'
-      ? v.toFixed(2)
-      : (v !== null && v !== undefined ? (+v).toFixed(2) : '—');
+  function t(key, params = {}, fallback = '') {
+    return typeof I18nService !== 'undefined'
+      ? I18nService.t(key, params, fallback)
+      : fallback || key;
   }
 
-  function toDate(v) {
-    if (!v) return null;
-    if (v instanceof Date) return v;
-    if (typeof v === 'number') return new Date(v > 1e12 ? v : v * 1000);
-    if (typeof v === 'string') {
-      const hasTz = /[zZ]|[+-]\d{2}:\d{2}$/.test(v);
-      return new Date(hasTz ? v : v + 'Z');
+  function getLocale() {
+    return typeof I18nService !== 'undefined'
+      ? I18nService.getIntlLocale()
+      : 'es-CO';
+  }
+
+  function fmt2(value) {
+    return typeof value === 'number'
+      ? value.toFixed(2)
+      : (value !== null && value !== undefined ? Number(value).toFixed(2) : t('common.emptyDash', {}, '—'));
+  }
+
+  function toDate(value) {
+    if (!value) return null;
+    if (value instanceof Date) return value;
+    if (typeof value === 'number') return new Date(value > 1e12 ? value : value * 1000);
+    if (typeof value === 'string') {
+      const hasTimezone = /[zZ]|[+-]\d{2}:\d{2}$/.test(value);
+      return new Date(hasTimezone ? value : value + 'Z');
     }
-    return new Date(v);
+    return new Date(value);
   }
 
   function fmtTime(value) {
-    const d = toDate(value);
-    if (!d) return '—';
-    return new Intl.DateTimeFormat('es-CO', {
-      timeZone: 'America/Bogota', hour: '2-digit', minute: '2-digit'
-    }).format(d);
+    const date = toDate(value);
+    if (!date) return t('common.emptyDash', {}, '—');
+    return new Intl.DateTimeFormat(getLocale(), {
+      timeZone: 'America/Bogota',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(date);
   }
 
   function fmtDateTime(value) {
-    const d = toDate(value);
-    if (!d) return '—';
-    return new Intl.DateTimeFormat('es-CO', {
-      timeZone: 'America/Bogota', dateStyle: 'short', timeStyle: 'medium'
-    }).format(d);
+    const date = toDate(value);
+    if (!date) return t('common.emptyDash', {}, '—');
+    return new Intl.DateTimeFormat(getLocale(), {
+      timeZone: 'America/Bogota',
+      dateStyle: 'short',
+      timeStyle: 'medium',
+    }).format(date);
   }
 
   function formatTagLabel(tag) {
     if (!tag) return '';
     return tag
-      .replace(/^telemetry_/, '').replace(/^event_/, '')
+      .replace(/^telemetry_/, '')
+      .replace(/^event_/, '')
       .replace(/_/g, ' ')
-      .replace(/\bpv\b/i,  'PV').replace(/\bsp\b/i,  'SP')
-      .replace(/\bppm\b/i, 'PPM').replace(/\bms\b/i, 'ms');
+      .replace(/\bpv\b/i, 'PV')
+      .replace(/\bsp\b/i, 'SP')
+      .replace(/\bppm\b/i, 'PPM')
+      .replace(/\bms\b/i, 'ms');
   }
 
   function isVisibleVariableTag(tag) {
@@ -61,19 +80,13 @@ const Helpers = (() => {
     return VISIBLE_VARIABLE_TAGS.filter(tag => tags.includes(tag));
   }
 
-  function fmtEventType(t) {
-    const m = {
-      SETPOINT_CHANGE: 'SetPoint', STATE_CHANGE: 'Estado',
-      ALARM_TRIGGER:   'Alarma',   ALARM_CLEAR:  'Alarma OK',
-      TARE_ACTION:     'Tara',     RECIPE_LOAD:  'Receta',
-      CALIBRATION:     'Calibración',
-    };
-    return m[t] || t;
+  function fmtEventType(type) {
+    return t('audit.eventBadge.' + type, {}, type);
   }
 
-  function boolHtml(val) {
-    if (val === null || val === undefined) return '—';
-    return val
+  function boolHtml(value) {
+    if (value === null || value === undefined) return t('common.emptyDash', {}, '—');
+    return value
       ? '<span class="val-bool-true">TRUE</span>'
       : '<span class="val-bool-false">FALSE</span>';
   }
@@ -88,9 +101,16 @@ const Helpers = (() => {
   }
 
   return {
-    fmt2, toDate, fmtTime, fmtDateTime,
-    formatTagLabel, isVisibleVariableTag, filterVisibleVariableTags,
-    fmtEventType, boolHtml, escapeHtml,
+    fmt2,
+    toDate,
+    fmtTime,
+    fmtDateTime,
+    formatTagLabel,
+    isVisibleVariableTag,
+    filterVisibleVariableTags,
+    fmtEventType,
+    boolHtml,
+    escapeHtml,
     VISIBLE_VARIABLE_TAGS,
   };
 })();

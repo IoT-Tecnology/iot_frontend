@@ -6,7 +6,6 @@ const RoleAccessService = (() => {
   const ROLES = {
     SUPERADMIN: 'superadmin',
     CLIENT: 'client',
-    PUBLIC_CLIENT: 'public_client',
   };
 
   function getRole(user = AppState.currentUser) {
@@ -21,14 +20,9 @@ const RoleAccessService = (() => {
     return getRole(user) === ROLES.CLIENT;
   }
 
-  function isPublicClient(user = AppState.currentUser) {
-    return getRole(user) === ROLES.PUBLIC_CLIENT;
-  }
-
   function getAllowedTabs(user = AppState.currentUser) {
     if (isSuperadmin(user)) return ['telemetry', 'audit', 'admin'];
     if (isClient(user)) return ['telemetry', 'audit'];
-    if (isPublicClient(user)) return ['telemetry'];
     return ['telemetry'];
   }
 
@@ -45,7 +39,6 @@ const RoleAccessService = (() => {
     getRole,
     isSuperadmin,
     isClient,
-    isPublicClient,
     getAllowedTabs,
     canViewAudit,
     canViewAdmin,

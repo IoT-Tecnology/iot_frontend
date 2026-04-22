@@ -1,10 +1,14 @@
 /**
  * js/view/AdminView.js
- * Renders administration UI. No API calls here.
+ * Renders administration UI.
  */
 const AdminView = (() => {
   let machineMap = null;
   let machineMarker = null;
+
+  function t(key, params = {}, fallback = '') {
+    return I18nService.t(key, params, fallback);
+  }
 
   function el(id) {
     return document.getElementById(id);
@@ -72,7 +76,7 @@ const AdminView = (() => {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors',
     }).addTo(machineMap);
-    machineMap.on('click', (event) => setMachineCoordinates(event.latlng.lat, event.latlng.lng));
+    machineMap.on('click', event => setMachineCoordinates(event.latlng.lat, event.latlng.lng));
     window.setTimeout(() => machineMap.invalidateSize(), 0);
   }
 
@@ -89,7 +93,7 @@ const AdminView = (() => {
     }
   }
 
-  function setMachineSubmitLabel(label = 'Crear maquina') {
+  function setMachineSubmitLabel(label = t('admin.createMachine')) {
     const button = el('admin-machine-form')?.querySelector('.admin-submit');
     if (button) button.textContent = label;
   }
@@ -118,17 +122,17 @@ const AdminView = (() => {
       }
     }
 
-    setMachineSubmitLabel('Guardar maquina');
+    setMachineSubmitLabel(t('admin.saveMachine'));
   }
 
   function setLoading() {
-    if (el('admin-users-body')) el('admin-users-body').innerHTML = '<tr><td colspan="5" class="empty-row">Cargando...</td></tr>';
-    if (el('admin-machines-body')) el('admin-machines-body').innerHTML = '<tr><td colspan="7" class="empty-row">Cargando...</td></tr>';
+    if (el('admin-users-body')) el('admin-users-body').innerHTML = '<tr><td colspan="5" class="empty-row">' + Helpers.escapeHtml(t('admin.usersLoading')) + '</td></tr>';
+    if (el('admin-machines-body')) el('admin-machines-body').innerHTML = '<tr><td colspan="7" class="empty-row">' + Helpers.escapeHtml(t('admin.machinesLoading')) + '</td></tr>';
   }
 
   function renderUserOptions(users) {
-    const clients = users.filter(user => ['client', 'public_client'].includes(user.role));
-    const options = ['<option value="">Selecciona cliente</option>']
+    const clients = users.filter(user => user.role === 'client');
+    const options = ['<option value="">' + Helpers.escapeHtml(t('admin.selectClient')) + '</option>']
       .concat(clients.map(user =>
         '<option value="' + Helpers.escapeHtml(user.id) + '">' +
           Helpers.escapeHtml(user.name || user.username || user.email) +
@@ -142,22 +146,23 @@ const AdminView = (() => {
     if (!tbody) return;
 
     if (!users.length) {
-      tbody.innerHTML = '<tr><td colspan="5" class="empty-row">Sin clientes registrados</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" class="empty-row">' + Helpers.escapeHtml(t('admin.noClients')) + '</td></tr>';
       return;
     }
 
     tbody.innerHTML = users.map(user => {
       const status = user.status || (user.isActive ? 'active' : 'inactive');
       const nextStatus = status === 'active' ? 'inactive' : 'active';
+      const actionLabel = nextStatus === 'active' ? t('admin.actions.activate') : t('admin.actions.deactivate');
+
       return (
         '<tr>' +
-          '<td>' + Helpers.escapeHtml(user.name || user.username || '—') + '</td>' +
-          '<td>' + Helpers.escapeHtml(user.email || '—') + '</td>' +
-          '<td>' + Helpers.escapeHtml(user.role || '—') + '</td>' +
+          '<td>' + Helpers.escapeHtml(user.name || user.username || t('common.emptyDash', {}, '—')) + '</td>' +
+          '<td>' + Helpers.escapeHtml(user.email || t('common.emptyDash', {}, '—')) + '</td>' +
+          '<td>' + Helpers.escapeHtml(user.role || t('common.emptyDash', {}, '—')) + '</td>' +
           '<td><span class="status-pill status-' + Helpers.escapeHtml(status) + '">' + Helpers.escapeHtml(status) + '</span></td>' +
-          '<td><button type="button" class="btn-ghost btn-sm" data-admin-action="toggle-user" ' +
-            'data-id="' + Helpers.escapeHtml(user.id) + '" data-status="' + Helpers.escapeHtml(nextStatus) + '">' +
-            (nextStatus === 'active' ? 'Activar' : 'Inactivar') +
+          '<td><button type="button" class="btn-ghost btn-sm" data-admin-action="toggle-user" data-id="' + Helpers.escapeHtml(user.id) + '" data-status="' + Helpers.escapeHtml(nextStatus) + '">' +
+            Helpers.escapeHtml(actionLabel) +
           '</button></td>' +
         '</tr>'
       );
@@ -169,7 +174,7 @@ const AdminView = (() => {
     if (!tbody) return;
 
     if (!machines.length) {
-      tbody.innerHTML = '<tr><td colspan="7" class="empty-row">Sin maquinas registradas</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" class="empty-row">' + Helpers.escapeHtml(t('admin.noMachines')) + '</td></tr>';
       return;
     }
 
@@ -177,23 +182,20 @@ const AdminView = (() => {
       const status = machine.status || (machine.is_active ? 'active' : 'inactive');
       const nextStatus = status === 'active' ? 'inactive' : 'active';
       const deviceKey = machine.deviceKey || machine.device_key || machine.device_name || '';
+      const actionLabel = nextStatus === 'active' ? t('admin.actions.activate') : t('admin.actions.deactivate');
+
       return (
         '<tr>' +
-          '<td>' + Helpers.escapeHtml(machine.name || '—') + '</td>' +
-          '<td>' + Helpers.escapeHtml(deviceKey || '—') + '</td>' +
-          '<td>' + Helpers.escapeHtml(machine.user_name || machine.ownerName || machine.user_id || '—') + '</td>' +
-          '<td>' + Helpers.escapeHtml(machine.location || '—') + '</td>' +
-          '<td>' + Helpers.escapeHtml(machine.pais || machine.country || '—') + '</td>' +
+          '<td>' + Helpers.escapeHtml(machine.name || t('common.emptyDash', {}, '—')) + '</td>' +
+          '<td>' + Helpers.escapeHtml(deviceKey || t('common.emptyDash', {}, '—')) + '</td>' +
+          '<td>' + Helpers.escapeHtml(machine.user_name || machine.ownerName || machine.user_id || t('common.emptyDash', {}, '—')) + '</td>' +
+          '<td>' + Helpers.escapeHtml(machine.location || t('common.emptyDash', {}, '—')) + '</td>' +
+          '<td>' + Helpers.escapeHtml(machine.pais || machine.country || t('common.emptyDash', {}, '—')) + '</td>' +
           '<td><span class="status-pill status-' + Helpers.escapeHtml(status) + '">' + Helpers.escapeHtml(status) + '</span></td>' +
           '<td class="admin-actions">' +
-            '<button type="button" class="btn-ghost btn-sm" data-admin-action="toggle-machine" ' +
-              'data-id="' + Helpers.escapeHtml(machine.id) + '" data-status="' + Helpers.escapeHtml(nextStatus) + '">' +
-              (nextStatus === 'active' ? 'Activar' : 'Inactivar') +
-            '</button>' +
-            '<button type="button" class="btn-ghost btn-sm" data-admin-action="show-sensors" ' +
-              'data-id="' + Helpers.escapeHtml(machine.id) + '">Variables</button>' +
-            '<button type="button" class="btn-ghost btn-sm" data-admin-action="locate-machine" ' +
-              'data-id="' + Helpers.escapeHtml(machine.id) + '">Ubicar</button>' +
+            '<button type="button" class="btn-ghost btn-sm" data-admin-action="toggle-machine" data-id="' + Helpers.escapeHtml(machine.id) + '" data-status="' + Helpers.escapeHtml(nextStatus) + '">' + Helpers.escapeHtml(actionLabel) + '</button>' +
+            '<button type="button" class="btn-ghost btn-sm" data-admin-action="show-sensors" data-id="' + Helpers.escapeHtml(machine.id) + '">' + Helpers.escapeHtml(t('admin.actions.variables')) + '</button>' +
+            '<button type="button" class="btn-ghost btn-sm" data-admin-action="locate-machine" data-id="' + Helpers.escapeHtml(machine.id) + '">' + Helpers.escapeHtml(t('admin.actions.locate')) + '</button>' +
           '</td>' +
         '</tr>'
       );
@@ -205,7 +207,7 @@ const AdminView = (() => {
     if (!target) return;
 
     if (!sensors.length) {
-      target.innerHTML = '<div class="summary-empty">Sin variables registradas para esta maquina</div>';
+      target.innerHTML = '<div class="summary-empty">' + Helpers.escapeHtml(t('admin.noSensors')) + '</div>';
       return;
     }
 

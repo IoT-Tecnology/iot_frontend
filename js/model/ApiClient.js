@@ -1,6 +1,6 @@
 /**
  * js/model/ApiClient.js
- * Cliente HTTP centralizado con manejo uniforme de errores y 401 global.
+ * Central HTTP client with shared error handling.
  */
 const ApiClient = (() => {
   class ApiError extends Error {
@@ -13,7 +13,7 @@ const ApiClient = (() => {
   }
 
   class AuthSessionError extends ApiError {
-    constructor(message = 'Tu sesion expiro. Inicia sesion nuevamente.', data = null, status = 401) {
+    constructor(message = I18nService.t('auth.sessionExpired'), data = null, status = 401) {
       super(message, status, data);
       this.name = 'AuthSessionError';
     }
@@ -44,11 +44,15 @@ const ApiClient = (() => {
     return finalHeaders;
   }
 
+  function buildResponseErrorMessage(data) {
+    return data?.error || data?.message || I18nService.t('common.errorGeneric');
+  }
+
   async function request(path, options = {}, config = {}) {
     const {
       requiresAuth = true,
       includeJsonHeader = false,
-      sessionExpiredMessage = 'Tu sesion expiro. Inicia sesion nuevamente.',
+      sessionExpiredMessage = I18nService.t('auth.sessionExpired'),
     } = config;
 
     const headers = createHeaders(options.headers, includeJsonHeader);
@@ -67,19 +71,22 @@ const ApiClient = (() => {
     const data = await parseResponse(response);
 
     if (response.status === 401 || response.status === 403) {
-      if (session) session.clearSession();
-      window.dispatchEvent(new CustomEvent('auth:required', {
-        detail: {
-          reason: 'expired',
-          message: sessionExpiredMessage,
-        },
-      }));
-      throw new AuthSessionError(sessionExpiredMessage, data, response.status);
+      if (requiresAuth) {
+        if (session) session.clearSession();
+        window.dispatchEvent(new CustomEvent('auth:required', {
+          detail: {
+            reason: 'expired',
+            message: sessionExpiredMessage,
+          },
+        }));
+        throw new AuthSessionError(sessionExpiredMessage, data, response.status);
+      }
+
+      throw new ApiError(buildResponseErrorMessage(data), response.status, data);
     }
 
     if (!response.ok) {
-      const message = data?.error || data?.message || 'Ocurrio un error al procesar la solicitud.';
-      throw new ApiError(message, response.status, data);
+      throw new ApiError(buildResponseErrorMessage(data), response.status, data);
     }
 
     return { response, data };

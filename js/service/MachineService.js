@@ -37,14 +37,14 @@ const MachineService = (() => {
       status: input.status || 'active',
     };
 
-    if (!payload.userId) throw new ApiClient.ApiError('El cliente propietario es requerido.', 400);
-    if (!payload.name) throw new ApiClient.ApiError('El nombre de la maquina es requerido.', 400);
-    if (!payload.deviceKey) throw new ApiClient.ApiError('El deviceKey es requerido.', 400);
+    if (!payload.userId) throw new ApiClient.ApiError(I18nService.t('forms.requiredOwner'), 400);
+    if (!payload.name) throw new ApiClient.ApiError(I18nService.t('forms.requiredMachineName'), 400);
+    if (!payload.deviceKey) throw new ApiClient.ApiError(I18nService.t('forms.requiredDeviceKey'), 400);
     if (payload.latitude !== null && !Number.isFinite(payload.latitude)) {
-      throw new ApiClient.ApiError('La latitud no es valida.', 400);
+      throw new ApiClient.ApiError(I18nService.t('forms.invalidLatitude'), 400);
     }
     if (payload.longitude !== null && !Number.isFinite(payload.longitude)) {
-      throw new ApiClient.ApiError('La longitud no es valida.', 400);
+      throw new ApiClient.ApiError(I18nService.t('forms.invalidLongitude'), 400);
     }
 
     return payload;

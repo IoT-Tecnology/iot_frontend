@@ -1,14 +1,19 @@
 /**
  * js/controller/AuthController.js
- * Gestiona login, recuperación y arranque autenticado de la app.
+ * Handles login and authenticated bootstrap.
  */
 const AuthController = (() => {
   let eventsBound = false;
 
+  function t(key, params = {}, fallback = '') {
+    return I18nService.t(key, params, fallback);
+  }
+
   function showMessage(message, type = '') {
-    const el = document.getElementById('auth-message');
-    el.textContent = message || '';
-    el.className = 'auth-message' + (type ? ' ' + type : '');
+    const element = document.getElementById('auth-message');
+    if (!element) return;
+    element.textContent = message || '';
+    element.className = 'auth-message' + (type ? ' ' + type : '');
   }
 
   function setLoginLoading(isLoading) {
@@ -18,7 +23,7 @@ const AuthController = (() => {
 
     if (button) {
       button.disabled = isLoading;
-      button.textContent = isLoading ? 'Ingresando...' : 'Ingresar';
+      button.textContent = isLoading ? t('auth.loggingIn') : t('auth.loginButton');
     }
 
     if (email) email.disabled = isLoading;
@@ -45,14 +50,14 @@ const AuthController = (() => {
 
     try {
       setLoginLoading(true);
-      showMessage('Validando credenciales...', '');
+      showMessage(t('auth.validating'));
       await AuthSessionService.login(email, password);
       hideAuthShell();
       await AppController.enterPrivateApp();
     } catch (error) {
       const message = [401, 403].includes(error.status)
-        ? 'Credenciales invalidas'
-        : (error.message || 'No fue posible iniciar sesion.');
+        ? t('auth.invalidCredentials')
+        : (error.message || t('auth.loginError'));
       showMessage(message, 'err');
     } finally {
       setLoginLoading(false);
@@ -65,18 +70,25 @@ const AuthController = (() => {
 
     document.getElementById('login-form').addEventListener('submit', handleLogin);
 
-    window.addEventListener('auth:required', async (event) => {
+    window.addEventListener('auth:required', async event => {
       await AppController.leavePrivateApp();
       showAuthShell(
-        event.detail?.message || 'Necesitas iniciar sesion para continuar.',
+        event.detail?.message || t('auth.authRequired'),
         event.detail?.reason === 'expired' ? 'err' : ''
       );
     });
   }
 
   async function init() {
+    I18nService.init();
+
+    if (typeof PublicController !== 'undefined' && PublicController.isPublicMode()) {
+      await PublicController.init();
+      return;
+    }
+
     bindEvents();
-    showAuthShell('Recuperando sesion...', '');
+    showAuthShell(t('auth.recoveringSession'));
     setLoginLoading(true);
 
     const hasSession = await AuthSessionService.restoreSession();
@@ -87,7 +99,7 @@ const AuthController = (() => {
     }
 
     setLoginLoading(false);
-    showAuthShell('Inicia sesion para acceder al monitor.', '');
+    showAuthShell(t('auth.loginRequired'));
   }
 
   return { init };

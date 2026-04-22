@@ -5,7 +5,7 @@
 const AdminDashboardService = (() => {
   async function loadAll({ includeInactive = false } = {}) {
     if (!RoleAccessService.canViewAdmin()) {
-      throw new ApiClient.ApiError('Permisos insuficientes para administracion.', 403);
+      throw new ApiClient.ApiError(I18nService.t('forms.adminPermissionDenied'), 403);
     }
 
     const [users, machines] = await Promise.all([

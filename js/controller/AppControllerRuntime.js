@@ -1,16 +1,27 @@
 /**
  * js/controller/AppControllerRuntime.js
- * Punto de entrada privado de la app autenticada.
+ * Private app entrypoint.
  */
 const AppController = (() => {
   let bootstrapped = false;
   let healthIntervalId = null;
 
-  const TAB_META = {
-    telemetry: { title: 'Telemetria', subtitle: 'Datos continuos de proceso' },
-    audit: { title: 'Auditoria', subtitle: 'Historial de configuracion y alarmas' },
-    admin: { title: 'Administracion', subtitle: 'Clientes y maquinas' },
-  };
+  function getTabMeta() {
+    return {
+      telemetry: {
+        title: I18nService.t('telemetry.pageTitle'),
+        subtitle: I18nService.t('telemetry.pageSubtitle'),
+      },
+      audit: {
+        title: I18nService.t('audit.pageTitle'),
+        subtitle: I18nService.t('audit.pageSubtitle'),
+      },
+      admin: {
+        title: I18nService.t('admin.pageTitle'),
+        subtitle: I18nService.t('admin.pageSubtitle'),
+      },
+    };
+  }
 
   function getActiveTab() {
     return document.querySelector('.nav-item.active')?.dataset.tab || 'telemetry';
@@ -26,17 +37,12 @@ const AppController = (() => {
     button.classList.add('active');
     section.classList.add('active');
 
-    const meta = TAB_META[tab] || {};
+    const meta = getTabMeta()[tab] || {};
     document.getElementById('page-title').textContent = meta.title || '';
     document.getElementById('page-subtitle').textContent = meta.subtitle || '';
 
-    if (tab === 'audit') {
-      AuditController.refresh();
-    }
-
-    if (tab === 'admin') {
-      AdminController.activate();
-    }
+    if (tab === 'audit') AuditController.refresh();
+    if (tab === 'admin') AdminController.activate();
   }
 
   function applyRoleNavigation() {
@@ -56,18 +62,15 @@ const AppController = (() => {
   }
 
   function setupTabs() {
-    document.querySelectorAll('.nav-item').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const tab = btn.dataset.tab;
-        activateTab(tab);
-      });
+    document.querySelectorAll('.nav-item').forEach(button => {
+      button.addEventListener('click', () => activateTab(button.dataset.tab));
     });
   }
 
   function setupEventListeners() {
     document.getElementById('device-selector').addEventListener('change', async event => {
       AppState.setDevice(event.target.value);
-      document.getElementById('sidebar-device-id').textContent = AppState.currentDevice || '—';
+      document.getElementById('sidebar-device-id').textContent = AppState.currentDevice || I18nService.t('common.emptyDash', {}, '—');
       updateSidebarForDevice(AppState.currentDevice);
       await TelemetryController.loadTags();
     });
@@ -84,9 +87,26 @@ const AppController = (() => {
       window.dispatchEvent(new CustomEvent('auth:required', {
         detail: {
           reason: 'logout',
-          message: 'La sesion se cerro correctamente.',
+          message: I18nService.t('auth.logoutSuccess'),
         },
       }));
+    });
+
+    window.addEventListener('i18n:changed', async () => {
+      if (PublicController.isPublicMode()) return;
+
+      I18nService.applyTranslations();
+      activateTab(getActiveTab());
+      TelemetryView.setConnStatus('offline');
+      TelemetryView.refreshDeviceLabels(AppState.deviceMap || {});
+
+      if (AppState.currentDevice) {
+        await TelemetryController.loadTags();
+        if (RoleAccessService.canViewAudit()) await AuditController.refresh();
+        if (RoleAccessService.canViewAdmin()) await AdminController.refresh();
+      } else {
+        resetPrivateView();
+      }
     });
   }
 
@@ -161,16 +181,16 @@ const AppController = (() => {
     TelemetryView.syncTelemetryLayout([]);
     TelemetryView.updateKpiCards({});
     TelemetryView.setRunningInactive();
-    TelemetryView.updateChartHeader('Serie temporal', '', 0);
+    TelemetryView.updateChartHeader(I18nService.t('telemetry.seriesTitle'), '', 0);
     TelemetryView.renderTable([]);
 
     AuditView.setSummaryLoading();
     AuditView.setEventsLoading();
     AdminController.reset();
 
-    document.getElementById('sidebar-user-email').textContent = '—';
-    document.getElementById('sidebar-device-id').textContent = '—';
-    document.getElementById('sidebar-last-update').textContent = '—';
+    document.getElementById('sidebar-user-email').textContent = I18nService.t('common.emptyDash', {}, '—');
+    document.getElementById('sidebar-device-id').textContent = I18nService.t('common.emptyDash', {}, '—');
+    document.getElementById('sidebar-last-update').textContent = I18nService.t('common.emptyDash', {}, '—');
   }
 
   function bootstrap() {
@@ -184,7 +204,7 @@ const AppController = (() => {
   async function enterPrivateApp() {
     bootstrap();
     applyRoleNavigation();
-    document.getElementById('sidebar-user-email').textContent = AppState.currentUser?.email || '—';
+    document.getElementById('sidebar-user-email').textContent = AppState.currentUser?.email || I18nService.t('common.emptyDash', {}, '—');
     await checkHealth();
     await TelemetryController.loadDevices();
     startHealthPolling();
@@ -198,5 +218,5 @@ const AppController = (() => {
     bootstrap();
   }
 
-  return { init, enterPrivateApp, leavePrivateApp };
+  return { init, enterPrivateApp, leavePrivateApp, activateTab };
 })();

@@ -1,9 +1,9 @@
 /**
  * js/service/UserService.js
- * Business logic for user/client administration.
+ * Business logic for user administration.
  */
 const UserService = (() => {
-  const UI_CREATABLE_ROLES = ['client', 'public_client'];
+  const UI_CREATABLE_ROLES = ['client'];
 
   function normalizeCreatePayload(input = {}) {
     const payload = {
@@ -14,11 +14,11 @@ const UserService = (() => {
       status: input.status || 'active',
     };
 
-    if (!payload.name) throw new ApiClient.ApiError('El nombre del cliente es requerido.', 400);
-    if (!payload.email) throw new ApiClient.ApiError('El email del cliente es requerido.', 400);
-    if (!payload.password) throw new ApiClient.ApiError('La contrasena inicial es requerida.', 400);
+    if (!payload.name) throw new ApiClient.ApiError(I18nService.t('forms.requiredClientName'), 400);
+    if (!payload.email) throw new ApiClient.ApiError(I18nService.t('forms.requiredClientEmail'), 400);
+    if (!payload.password) throw new ApiClient.ApiError(I18nService.t('forms.requiredClientPassword'), 400);
     if (!UI_CREATABLE_ROLES.includes(payload.role)) {
-      throw new ApiClient.ApiError('Rol no permitido desde esta pantalla.', 400);
+      throw new ApiClient.ApiError(I18nService.t('forms.roleNotAllowed'), 400);
     }
 
     return payload;

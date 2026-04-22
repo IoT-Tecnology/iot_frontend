@@ -1,24 +1,20 @@
 /**
  * js/controller/TelemetryController.js
- * Orquesta la pestaña Telemetría: dispositivos, etiquetas, KPIs y gráfico.
- * Depende de: AppState, TelemetryService, TelemetryView
+ * Coordinates devices, KPIs and chart data.
  */
 const TelemetryController = (() => {
-
   async function loadDevices() {
     let devices = [];
     try {
       const remote = await TelemetryService.getDeviceObjects();
-      // IDs activos (con health) van primero
-      const activeDevs = remote.filter(d => d.id && d.health?.status === 'healthy');
-      const otherDevs  = remote.filter(d => d.id && d.health?.status !== 'healthy');
-      // Consolidar IDs disponibles en backend
-      const allIds = new Set([...remote.map(d => d.id).filter(Boolean)]);
-      const allDevs = [...activeDevs, ...otherDevs];
+      const activeDevices = remote.filter(device => device.id && device.health?.status === 'healthy');
+      const otherDevices = remote.filter(device => device.id && device.health?.status !== 'healthy');
+      const allIds = new Set([...remote.map(device => device.id).filter(Boolean)]);
+      const allDevices = [...activeDevices, ...otherDevices];
       allIds.forEach(id => {
-        if (!allDevs.find(d => d.id === id)) allDevs.push({ id });
+        if (!allDevices.find(device => device.id === id)) allDevices.push({ id });
       });
-      devices = allDevs;
+      devices = allDevices;
 
       if (!devices.length) {
         TelemetryView.populateDeviceSelector([], '');
@@ -27,19 +23,20 @@ const TelemetryController = (() => {
         return;
       }
 
-      // Si el actual no existe, escoger uno automático (healthy primero)
-      const existsCurrent = devices.some(d => d.id === AppState.currentDevice);
+      const existsCurrent = devices.some(device => device.id === AppState.currentDevice);
       if (!existsCurrent) {
-        const preferred = activeDevs[0]?.id || devices[0]?.id || '';
+        const preferred = activeDevices[0]?.id || devices[0]?.id || '';
         AppState.defaultDevice = preferred;
         AppState.setDevice(preferred);
       }
 
-      // Guardar mapa en estado
       const map = {};
-      devices.forEach(d => { if (d.id) map[d.id] = d; });
+      devices.forEach(device => {
+        if (device.id) map[device.id] = device;
+      });
       AppState.setDeviceMap(map);
     } catch {}
+
     TelemetryView.populateDeviceSelector(devices, AppState.currentDevice);
     await loadTags();
   }
@@ -55,42 +52,47 @@ const TelemetryController = (() => {
         TelemetryView.populateVariableSelector([]);
         TelemetryView.updateKpiCards({});
         AppState.clearChart();
-        TelemetryView.updateChartHeader('Sin variables activas', '', 0);
+        TelemetryView.updateChartHeader(I18nService.t('telemetry.inactiveVariables'), '', 0);
         TelemetryView.renderTable([]);
         return;
       }
 
       TelemetryView.populateVariableSelector(tags);
       await Promise.all([updateKpis(), loadChartData()]);
-    } catch (err) {
+    } catch (error) {
       TelemetryView.setConnStatus('offline');
-      console.error('[TelemetryController] loadTags', err);
+      console.error('[TelemetryController] loadTags', error);
     }
   }
 
   async function updateKpis() {
     try {
-      const dev = AppState.deviceMap[AppState.currentDevice];
-      const isInactive = !dev || !dev.health;
+      const device = AppState.deviceMap[AppState.currentDevice];
+      const isInactive = !device || !device.health;
       const data = await TelemetryService.getLatest(AppState.currentDevice);
       TelemetryView.updateKpiCards(data);
-      if (isInactive) {
-        TelemetryView.setRunningInactive();
-      }
+      if (isInactive) TelemetryView.setRunningInactive();
       TelemetryView.updateSidebarTime();
     } catch {}
   }
 
   async function loadChartData() {
-    const tag   = document.getElementById('variable-selector').value;
+    const tag = document.getElementById('variable-selector').value;
     const range = document.getElementById('time-range-selector').value;
     if (!tag) return;
 
     try {
       const allRows = await TelemetryService.getHistory(AppState.currentDevice, range);
-      const rows    = allRows.filter(row => row.tag_name === tag);
+      const rows = allRows.filter(row => row.tag_name === tag);
 
-      TelemetryView.updateChartHeader(tag, range, rows.length);
+      const rangeLabelMap = {
+        '1min': I18nService.t('telemetry.timeRange1Min'),
+        '5min': I18nService.t('telemetry.timeRange5Min'),
+        '10min': I18nService.t('telemetry.timeRange10Min'),
+        '1hour': I18nService.t('telemetry.timeRange1Hour'),
+      };
+
+      TelemetryView.updateChartHeader(tag, rangeLabelMap[range] || range, rows.length);
 
       if (!rows.length) {
         AppState.clearChart();
@@ -101,8 +103,8 @@ const TelemetryController = (() => {
       TelemetryView.renderChart(rows, tag);
       TelemetryView.renderTable(rows.slice().reverse());
       TelemetryView.updateSidebarTime();
-    } catch (err) {
-      console.error('[TelemetryController] loadChartData', err);
+    } catch (error) {
+      console.error('[TelemetryController] loadChartData', error);
     }
   }
 

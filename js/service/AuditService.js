@@ -5,7 +5,7 @@
 const AuditService = (() => {
   function ensureAuditAllowed() {
     if (!RoleAccessService.canViewAudit()) {
-      throw new ApiClient.ApiError('Permisos insuficientes para auditoria.', 403);
+      throw new ApiClient.ApiError(I18nService.t('forms.auditPermissionDenied'), 403);
     }
   }
 

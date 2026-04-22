@@ -8,8 +8,12 @@ const AdminController = (() => {
   let editingMachineId = null;
   let cachedMachines = [];
 
-  function showError(target, error, fallback) {
-    AdminView.setMessage(target, error?.message || fallback, 'err');
+  function t(key, params = {}, fallback = '') {
+    return I18nService.t(key, params, fallback);
+  }
+
+  function showError(target, error, fallbackKey) {
+    AdminView.setMessage(target, error?.message || t(fallbackKey), 'err');
     console.error('[AdminController]', error);
   }
 
@@ -23,40 +27,40 @@ const AdminController = (() => {
       AdminView.renderDashboard(data);
       hasLoaded = true;
     } catch (error) {
-      showError('admin-global-message', error, 'No fue posible cargar administracion.');
+      showError('admin-global-message', error, 'admin.loadAdminError');
     }
   }
 
   async function handleUserSubmit(event) {
     event.preventDefault();
     try {
-      AdminView.setMessage('admin-user-message', 'Creando cliente...');
+      AdminView.setMessage('admin-user-message', t('admin.createClientLoading'));
       await UserService.createClient(AdminView.getUserFormData());
       AdminView.resetUserForm();
-      AdminView.setMessage('admin-user-message', 'Cliente guardado.', 'ok');
+      AdminView.setMessage('admin-user-message', t('admin.createClientSuccess'), 'ok');
       await refresh();
     } catch (error) {
-      showError('admin-user-message', error, 'No fue posible crear el cliente.');
+      showError('admin-user-message', error, 'admin.createClientError');
     }
   }
 
   async function handleMachineSubmit(event) {
     event.preventDefault();
     try {
-      AdminView.setMessage('admin-machine-message', 'Creando maquina...');
+      AdminView.setMessage('admin-machine-message', t('admin.createMachineLoading'));
       const payload = AdminView.getMachineFormData();
       if (editingMachineId) {
-        AdminView.setMessage('admin-machine-message', 'Guardando maquina...');
+        AdminView.setMessage('admin-machine-message', t('admin.saveMachineLoading'));
         await MachineService.update(editingMachineId, payload);
         editingMachineId = null;
       } else {
         await MachineService.create(payload);
       }
       AdminView.resetMachineForm();
-      AdminView.setMessage('admin-machine-message', 'Maquina guardada.', 'ok');
+      AdminView.setMessage('admin-machine-message', t('admin.createMachineSuccess'), 'ok');
       await refresh();
     } catch (error) {
-      showError('admin-machine-message', error, 'No fue posible crear la maquina.');
+      showError('admin-machine-message', error, 'admin.createMachineError');
     }
   }
 
@@ -80,7 +84,7 @@ const AdminController = (() => {
       }
 
       if (action === 'show-sensors') {
-        AdminView.setMessage('admin-machine-message', 'Cargando variables...');
+        AdminView.setMessage('admin-machine-message', t('admin.loadingSensors'));
         const sensors = await MachineService.listSensors(id, { includeInactive: true });
         AdminView.renderMachineSensors(sensors);
         AdminView.setMessage('admin-machine-message', '');
@@ -91,10 +95,10 @@ const AdminController = (() => {
         if (!machine) return;
         editingMachineId = id;
         AdminView.fillMachineForm(machine);
-        AdminView.setMessage('admin-machine-message', 'Selecciona la ubicacion en el mapa y guarda la maquina.');
+        AdminView.setMessage('admin-machine-message', t('admin.locateMachineMessage'));
       }
     } catch (error) {
-      showError('admin-global-message', error, 'No fue posible completar la accion.');
+      showError('admin-global-message', error, 'admin.completeActionError');
     }
   }
 
