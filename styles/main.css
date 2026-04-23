@@ -109,6 +109,30 @@ body.public-mode .public-shell {
   gap: 12px;
 }
 
+.public-login-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 84px;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: var(--brand2);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-decoration: none;
+  box-shadow: 0 10px 24px rgba(36,104,200,.22);
+  transition: transform .15s ease, box-shadow .15s ease, background-color .15s ease;
+}
+
+.public-login-link:hover {
+  transform: translateY(-1px);
+  background: var(--brand);
+  box-shadow: 0 14px 28px rgba(29,92,180,.28);
+}
+
 .public-kicker,
 .public-panel-kicker {
   display: inline-flex;
@@ -179,15 +203,15 @@ body.public-mode .public-shell {
 }
 
 .public-panel {
-  border: 1px solid rgba(15,23,42,.08);
+  border: 1px solid rgba(15,23,42,.06);
   border-radius: 24px;
-  background: rgba(255,255,255,.8);
-  box-shadow: 0 20px 60px rgba(15,23,42,.10);
+  background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.82));
+  box-shadow: 0 24px 70px rgba(15,23,42,.08);
   backdrop-filter: blur(16px);
 }
 
 .public-panel-map {
-  padding: 24px;
+  padding: 20px;
 }
 
 .public-panel-head {
@@ -222,19 +246,136 @@ body.public-mode .public-shell {
 .public-status.err { color: var(--red); }
 .public-status.empty { color: var(--yellow); }
 
+.public-map-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.public-map-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 0 14px;
+  border: 1px solid rgba(15,23,42,.08);
+  border-radius: 999px;
+  background: rgba(255,255,255,.76);
+  color: var(--text2);
+  font-size: 12px;
+  font-weight: 700;
+  backdrop-filter: blur(10px);
+}
+
+.public-map-chip::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(36,104,200,.35);
+}
+
+.public-map-chip-live::before {
+  background: var(--green);
+  box-shadow: 0 0 0 4px rgba(22,163,74,.15);
+}
+
 .public-map {
   min-height: 580px;
-  border-radius: 18px;
+  border-radius: 22px;
   overflow: hidden;
-  border: 1px solid rgba(15,23,42,.10);
+  border: 1px solid rgba(15,23,42,.08);
   background:
-    linear-gradient(135deg, rgba(30,58,95,.10), rgba(29,92,180,.08)),
+    radial-gradient(circle at top left, rgba(245,158,11,.12), transparent 24%),
+    linear-gradient(135deg, rgba(30,58,95,.08), rgba(29,92,180,.06)),
     #dbe7f5;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.55);
+}
+
+.public-machine-marker-wrap {
+  background: transparent;
+  border: 0;
+}
+
+.public-machine-marker {
+  position: relative;
+  width: 84px;
+  height: 46px;
+}
+
+.public-machine-marker__pulse {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(36,104,200,.18);
+  box-shadow: 0 0 0 10px rgba(36,104,200,.08);
+}
+
+.public-machine-marker__core {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #2d7ae7, #174b9e);
+  border: 2px solid #fff;
+  box-shadow: 0 10px 18px rgba(23,75,158,.30);
+}
+
+.public-machine-marker__label {
+  position: absolute;
+  top: 5px;
+  left: 36px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(15,23,42,.82);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  box-shadow: 0 12px 20px rgba(15,23,42,.18);
+}
+
+.public-popup-shell .leaflet-popup-content-wrapper {
+  border-radius: 18px;
+  background: rgba(255,255,255,.96);
+  box-shadow: 0 24px 50px rgba(15,23,42,.18);
+}
+
+.public-popup-shell .leaflet-popup-content {
+  margin: 0;
+}
+
+.public-popup-shell .leaflet-popup-tip {
+  background: rgba(255,255,255,.96);
+}
+
+.public-popup {
+  min-width: 220px;
+  padding: 16px 16px 14px;
+}
+
+.public-popup__eyebrow {
+  margin-bottom: 8px;
+  color: var(--brand2);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
 }
 
 .public-popup h3 {
   margin-bottom: 8px;
-  font-size: 16px;
+  font-size: 18px;
+  line-height: 1.1;
 }
 
 .public-popup p {
@@ -258,7 +399,7 @@ body.public-mode .public-shell {
 
 .public-popup dd {
   margin: 0;
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--text);
 }

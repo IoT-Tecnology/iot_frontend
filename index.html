@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ReadyPackers IoT - Monitor Industrial</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">si
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="styles/main.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -14,7 +14,7 @@
 </head>
 <body class="layout auth-locked">
   <script>
-    if (new URLSearchParams(window.location.search).get('view') === 'public') {
+    if (new URLSearchParams(window.location.search).get('view') !== 'private') {
       document.body.classList.add('public-mode');
       document.body.classList.remove('auth-locked');
     }
@@ -27,6 +27,7 @@
         <div class="public-kicker" data-i18n="common.appName">ReadyPackers</div>
         <div class="public-header-actions">
           <div class="public-badge" data-i18n="public.badge">Vista pública</div>
+          <a href="?view=private" class="public-login-link" data-i18n="public.loginButton">Ingresar</a>
           <button type="button" class="lang-toggle" data-language-toggle aria-label="Cambiar idioma a inglés">EN</button>
         </div>
       </div>
@@ -47,6 +48,10 @@
         </div>
 
         <div id="public-status" class="public-status" role="status" aria-live="polite"></div>
+        <div class="public-map-toolbar">
+          <div class="public-map-chip public-map-chip-live" data-i18n="public.mapLive">Cobertura visible</div>
+          <div class="public-map-chip" data-i18n="public.mapApproximate">Ubicación aproximada</div>
+        </div>
         <div id="public-map" class="public-map" data-i18n-attrs="aria-label:public.mapAria" aria-label="Mapa de máquinas registradas"></div>
       </section>
     </main>

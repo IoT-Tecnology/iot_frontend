@@ -7,7 +7,7 @@ const PublicController = (() => {
   let lastMachines = [];
 
   function isPublicMode() {
-    return new URLSearchParams(window.location.search).get('view') === 'public';
+    return new URLSearchParams(window.location.search).get('view') !== 'private';
   }
 
   function updateStatusFromCache() {

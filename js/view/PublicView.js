@@ -61,9 +61,26 @@ const PublicView = (() => {
     });
   }
 
+  function createMarkerIcon(machine) {
+    const ppmLabel = formatPpm(machine.ppm);
+    return L.divIcon({
+      className: 'public-machine-marker-wrap',
+      html:
+        '<div class="public-machine-marker">' +
+          '<span class="public-machine-marker__pulse"></span>' +
+          '<span class="public-machine-marker__core"></span>' +
+          '<span class="public-machine-marker__label">' + Helpers.escapeHtml(ppmLabel) + '</span>' +
+        '</div>',
+      iconSize: [84, 46],
+      iconAnchor: [22, 22],
+      popupAnchor: [22, -10],
+    });
+  }
+
   function buildPopup(machine) {
     return (
       '<article class="public-popup">' +
+        '<div class="public-popup__eyebrow">' + Helpers.escapeHtml(t('public.approximateBadge')) + '</div>' +
         '<h3>' + Helpers.escapeHtml(machine.name || t('public.machineWithoutName')) + '</h3>' +
         '<p>' + Helpers.escapeHtml(machine.description || t('public.machineWithoutDescription')) + '</p>' +
         '<dl>' +
@@ -94,21 +111,24 @@ const PublicView = (() => {
     machines.forEach(machine => {
       const point = [machine.latitude, machine.longitude];
       bounds.push(point);
-      L.marker(point)
+      L.marker(point, {
+        icon: createMarkerIcon(machine),
+      })
         .bindPopup(buildPopup(machine), {
           autoPan: true,
           closeButton: true,
+          className: 'public-popup-shell',
         })
         .addTo(markerLayer);
     });
 
     if (bounds.length === 1) {
-      map.setView(bounds[0], DEFAULT_ZOOM, { animate: false });
+      map.setView(bounds[0], 6, { animate: false });
       return;
     }
 
     map.fitBounds(bounds, {
-      padding: [36, 36],
+      padding: [72, 72],
       maxZoom: MAX_ZOOM,
       animate: false,
     });
