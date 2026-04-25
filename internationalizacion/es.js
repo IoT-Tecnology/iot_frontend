@@ -100,7 +100,7 @@ window.ReadyPackersLocales.es = {
     aggregation: 'Agregación',
     seriesTitle: 'Serie temporal',
     points: '{count} puntos',
-    inactiveVariables: 'Sin variables activas',
+    inactiveVariables: 'Sin variables registradas',
     aggregatedData: 'Datos agregados',
     timestamp: 'Timestamp',
     average: 'Promedio',

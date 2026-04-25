@@ -3,14 +3,6 @@
  * Pure formatting helpers.
  */
 const Helpers = (() => {
-  const VISIBLE_VARIABLE_TAGS = [
-    'telemetry_pv_peso_promedio',
-    'telemetry_sp_peso_promedio',
-    'telemetry_cantidad_productos_total',
-  ];
-
-  const VISIBLE_VARIABLE_SET = new Set(VISIBLE_VARIABLE_TAGS);
-
   function t(key, params = {}, fallback = '') {
     return typeof I18nService !== 'undefined'
       ? I18nService.t(key, params, fallback)
@@ -72,14 +64,6 @@ const Helpers = (() => {
       .replace(/\bms\b/i, 'ms');
   }
 
-  function isVisibleVariableTag(tag) {
-    return VISIBLE_VARIABLE_SET.has(tag);
-  }
-
-  function filterVisibleVariableTags(tags) {
-    return VISIBLE_VARIABLE_TAGS.filter(tag => tags.includes(tag));
-  }
-
   function fmtEventType(type) {
     return t('audit.eventBadge.' + type, {}, type);
   }
@@ -106,11 +90,8 @@ const Helpers = (() => {
     fmtTime,
     fmtDateTime,
     formatTagLabel,
-    isVisibleVariableTag,
-    filterVisibleVariableTags,
     fmtEventType,
     boolHtml,
     escapeHtml,
-    VISIBLE_VARIABLE_TAGS,
   };
 })();
