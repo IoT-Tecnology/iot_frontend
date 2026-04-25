@@ -476,6 +476,73 @@ body.public-mode .public-shell {
   box-shadow: 0 0 0 3px rgba(36,104,200,.12);
 }
 
+.password-field {
+  position: relative;
+  width: 100%;
+}
+
+.password-field .auth-input,
+.password-field .admin-input {
+  padding-right: 44px;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  width: 32px;
+  height: 32px;
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text3);
+  cursor: pointer;
+}
+
+.password-toggle:hover,
+.password-toggle:focus-visible {
+  background: var(--bg3);
+  color: var(--text);
+  outline: none;
+}
+
+.password-eye {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 18px;
+  height: 12px;
+  transform: translate(-50%, -50%);
+  border: 1.8px solid currentColor;
+  border-radius: 50%;
+}
+
+.password-eye::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.password-toggle[aria-pressed="true"] .password-eye::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 22px;
+  height: 2px;
+  transform: translate(-50%, -50%) rotate(-35deg);
+  border-radius: 999px;
+  background: currentColor;
+  box-shadow: 0 0 0 2px var(--bg2);
+}
+
 .auth-button {
   margin-top: 6px;
   border: none;

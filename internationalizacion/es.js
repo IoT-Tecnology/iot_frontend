@@ -70,6 +70,8 @@ window.ReadyPackersLocales.es = {
     resetPasswordLabel: 'Nueva contraseña',
     resetPasswordPlaceholder: 'Nueva contraseña',
     resetSubmit: 'Restablecer contraseña',
+    showPassword: 'Mostrar contraseña',
+    hidePassword: 'Ocultar contraseña',
     recoveringSession: 'Recuperando sesión...',
     loginRequired: 'Inicia sesión para acceder al monitor.',
     validating: 'Validando credenciales...',

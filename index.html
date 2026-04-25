@@ -71,7 +71,12 @@
         <input id="login-email" class="auth-input" type="email" required>
 
         <label class="auth-label" for="login-password" data-i18n="auth.passwordLabel">Contraseña</label>
-        <input id="login-password" class="auth-input" type="password" placeholder="*******" required>
+        <div class="password-field">
+          <input id="login-password" class="auth-input" type="password" placeholder="*******" required>
+          <button type="button" class="password-toggle" data-password-toggle="login-password" data-i18n-attrs="aria-label:auth.showPassword" aria-label="Mostrar contraseña" aria-pressed="false">
+            <span class="password-eye" aria-hidden="true"></span>
+          </button>
+        </div>
 
         <button id="login-submit" type="submit" class="auth-button" data-i18n="auth.loginButton">Ingresar</button>
         <button type="button" id="show-forgot-password" class="auth-link" data-i18n="auth.forgotPassword">Olvidé mi contraseña</button>
@@ -91,7 +96,12 @@
         <input id="reset-token" class="auth-input" type="text" data-i18n-attrs="placeholder:auth.resetTokenPlaceholder" placeholder="Pega aquí el token" required>
 
         <label class="auth-label" for="reset-password" data-i18n="auth.resetPasswordLabel">Nueva contraseña</label>
-        <input id="reset-password" class="auth-input" type="password" data-i18n-attrs="placeholder:auth.resetPasswordPlaceholder" placeholder="Nueva contraseña" required>
+        <div class="password-field">
+          <input id="reset-password" class="auth-input" type="password" data-i18n-attrs="placeholder:auth.resetPasswordPlaceholder" placeholder="Nueva contraseña" required>
+          <button type="button" class="password-toggle" data-password-toggle="reset-password" data-i18n-attrs="aria-label:auth.showPassword" aria-label="Mostrar contraseña" aria-pressed="false">
+            <span class="password-eye" aria-hidden="true"></span>
+          </button>
+        </div>
 
         <button type="submit" class="auth-button" data-i18n="auth.resetSubmit">Restablecer contraseña</button>
         <button type="button" id="back-to-login-from-reset" class="auth-link" data-i18n="auth.backToLogin">Volver al login</button>
@@ -297,7 +307,7 @@
         <div id="admin-global-message" class="admin-message"></div>
 
         <div class="admin-grid">
-          <div class="card admin-panel">
+          <div class="card admin-panel admin-panel-wide">
             <div class="card-header">
               <span class="card-title" data-i18n="admin.clients">Clientes</span>
             </div>
@@ -312,7 +322,12 @@
               </div>
               <div>
                 <label class="admin-label" for="admin-user-password" data-i18n="admin.initialPassword">Contraseña inicial</label>
-                <input id="admin-user-password" class="admin-input" type="password" required>
+                <div class="password-field">
+                  <input id="admin-user-password" class="admin-input" type="password" required>
+                  <button type="button" class="password-toggle" data-password-toggle="admin-user-password" data-i18n-attrs="aria-label:auth.showPassword" aria-label="Mostrar contraseña" aria-pressed="false">
+                    <span class="password-eye" aria-hidden="true"></span>
+                  </button>
+                </div>
               </div>
               <div>
                 <label class="admin-label" for="admin-user-role" data-i18n="admin.role">Rol</label>

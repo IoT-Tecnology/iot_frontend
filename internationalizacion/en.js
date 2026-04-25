@@ -70,6 +70,8 @@ window.ReadyPackersLocales.en = {
     resetPasswordLabel: 'New password',
     resetPasswordPlaceholder: 'New password',
     resetSubmit: 'Reset password',
+    showPassword: 'Show password',
+    hidePassword: 'Hide password',
     recoveringSession: 'Restoring session...',
     loginRequired: 'Sign in to access the monitor.',
     validating: 'Validating credentials...',

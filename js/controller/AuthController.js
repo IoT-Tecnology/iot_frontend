@@ -20,6 +20,7 @@ const AuthController = (() => {
     const button = document.getElementById('login-submit');
     const email = document.getElementById('login-email');
     const password = document.getElementById('login-password');
+    const passwordToggle = document.querySelector('[data-password-toggle="login-password"]');
 
     if (button) {
       button.disabled = isLoading;
@@ -28,6 +29,29 @@ const AuthController = (() => {
 
     if (email) email.disabled = isLoading;
     if (password) password.disabled = isLoading;
+    if (passwordToggle) passwordToggle.disabled = isLoading;
+  }
+
+  function setupPasswordToggles() {
+    function refreshButton(button, input) {
+      const isShowing = input.type === 'text';
+      button.setAttribute('aria-pressed', String(isShowing));
+      button.setAttribute('aria-label', isShowing ? t('auth.hidePassword') : t('auth.showPassword'));
+    }
+
+    document.querySelectorAll('[data-password-toggle]').forEach(button => {
+      const input = document.getElementById(button.dataset.passwordToggle);
+      if (!input) return;
+
+      button.addEventListener('click', () => {
+        const shouldShow = input.type === 'password';
+        input.type = shouldShow ? 'text' : 'password';
+        refreshButton(button, input);
+        input.focus();
+      });
+
+      window.addEventListener('i18n:changed', () => refreshButton(button, input));
+    });
   }
 
   function showAuthShell(message = '', type = '') {
@@ -68,6 +92,7 @@ const AuthController = (() => {
     if (eventsBound) return;
     eventsBound = true;
 
+    setupPasswordToggles();
     document.getElementById('login-form').addEventListener('submit', handleLogin);
 
     window.addEventListener('auth:required', async event => {
