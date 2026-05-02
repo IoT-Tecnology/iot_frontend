@@ -54,22 +54,22 @@ const PublicView = (() => {
     return publicMap;
   }
 
-  function formatPpm(ppm) {
-    if (ppm === null || ppm === undefined || !Number.isFinite(Number(ppm))) return t('common.notAvailable');
-    return Number(ppm).toLocaleString(I18nService.getIntlLocale(), {
+  function formatProductsPerHour(productsPerHour) {
+    if (productsPerHour === null || productsPerHour === undefined || !Number.isFinite(Number(productsPerHour))) return t('common.notAvailable');
+    return Number(productsPerHour).toLocaleString(I18nService.getIntlLocale(), {
       maximumFractionDigits: 2,
     });
   }
 
   function createMarkerIcon(machine) {
-    const ppmLabel = formatPpm(machine.ppm);
+    const productsPerHourLabel = formatProductsPerHour(machine.productsPerHour);
     return L.divIcon({
       className: 'public-machine-marker-wrap',
       html:
         '<div class="public-machine-marker">' +
           '<span class="public-machine-marker__pulse"></span>' +
           '<span class="public-machine-marker__core"></span>' +
-          '<span class="public-machine-marker__label">' + Helpers.escapeHtml(ppmLabel) + '</span>' +
+          '<span class="public-machine-marker__label">' + Helpers.escapeHtml(productsPerHourLabel) + '</span>' +
         '</div>',
       iconSize: [84, 46],
       iconAnchor: [22, 22],
@@ -80,11 +80,8 @@ const PublicView = (() => {
   function buildPopup(machine) {
     return (
       '<article class="public-popup">' +
-        '<div class="public-popup__eyebrow">' + Helpers.escapeHtml(t('public.approximateBadge')) + '</div>' +
-        '<h3>' + Helpers.escapeHtml(machine.name || t('public.machineWithoutName')) + '</h3>' +
-        '<p>' + Helpers.escapeHtml(machine.description || t('public.machineWithoutDescription')) + '</p>' +
         '<dl>' +
-          '<div><dt>' + Helpers.escapeHtml(t('public.ppm')) + '</dt><dd>' + Helpers.escapeHtml(formatPpm(machine.ppm)) + '</dd></div>' +
+          '<div><dt>' + Helpers.escapeHtml(t('public.productsPerHour')) + '</dt><dd>' + Helpers.escapeHtml(formatProductsPerHour(machine.productsPerHour)) + '</dd></div>' +
         '</dl>' +
       '</article>'
     );

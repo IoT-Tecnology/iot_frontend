@@ -20,17 +20,15 @@ const PublicService = (() => {
     return '';
   }
 
-  function pickPpm(machine = {}) {
-    const ppm = pickNumber(
-      machine.ppm,
-      machine.packages_per_minute,
-      machine.packagesPerMinute,
-      machine.metrics?.ppm,
-      machine.metrics?.packages_per_minute,
-      machine.metrics?.packagesPerMinute
+  function pickProductsPerHour(machine = {}) {
+    const productsPerHour = pickNumber(
+      machine.products_per_hour,
+      machine.productsPerHour,
+      machine.metrics?.products_per_hour,
+      machine.metrics?.productsPerHour
     );
 
-    return ppm === null ? null : ppm;
+    return productsPerHour === null ? null : productsPerHour;
   }
 
   function normalizeMachine(machine = {}, index = 0) {
@@ -58,7 +56,7 @@ const PublicService = (() => {
       description,
       latitude,
       longitude,
-      ppm: pickPpm(machine),
+      productsPerHour: pickProductsPerHour(machine),
       status: pickText(machine.status, machine.machine_status, machine.visibility_status) || '',
     };
   }

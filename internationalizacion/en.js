@@ -52,7 +52,7 @@ window.ReadyPackersLocales.en = {
     loadError: 'The public map could not be loaded.',
     machineWithoutName: 'Unnamed machine',
     machineWithoutDescription: 'No description',
-    ppm: 'Packages per minute',
+    productsPerHour: 'Products per hour',
   },
   auth: {
     title: 'IoT Monitor Access',

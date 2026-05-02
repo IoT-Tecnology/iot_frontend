@@ -52,7 +52,7 @@ window.ReadyPackersLocales.es = {
     loadError: 'No fue posible cargar el mapa público.',
     machineWithoutName: 'Máquina sin nombre',
     machineWithoutDescription: 'Sin descripción',
-    ppm: 'Paquetes por minuto',
+    productsPerHour: 'Productos por hora',
   },
   auth: {
     title: 'Acceso al Monitor IoT',
